@@ -1,0 +1,11 @@
+node_modules/
+.next/
+coverage/
+supabase/.temp/
+*.tsbuildinfo
+.eslintcache
+*.log
+*.err
+.env*.local
+.env
+!.env.example

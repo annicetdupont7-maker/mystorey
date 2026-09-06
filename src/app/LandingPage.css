@@ -1,0 +1,1256 @@
+/* ================================================================
+   VENDOFLOW — Landing Page Stylesheet
+   Design éditorial, premium, chaleureux & orienté e-commerce
+   Toutes les règles sont SCOPÉES à .vendoflow-page
+   ================================================================ */
+
+.vendoflow-page {
+  --vf-bg: #FFF9F4;
+  --vf-bg-subtle: #F8EEE7;
+  --vf-burgundy: #A51F3D;
+  --vf-burgundy-dark: #351014;
+  --vf-burgundy-hover: #8B1832;
+  --vf-text-dark: #321A1B;
+  --vf-text-muted: #745F5C;
+  --vf-border: #E4D5CC;
+  --vf-rose-pale: #E8C8CC;
+  --vf-rose-light: #FDF5F5;
+  --vf-white: #FFFFFF;
+  --vf-shadow-sm: 0 4px 12px rgba(53, 16, 20, 0.04);
+  --vf-shadow-md: 0 12px 28px rgba(53, 16, 20, 0.07);
+  --vf-shadow-lg: 0 24px 50px rgba(53, 16, 20, 0.12);
+
+  background-color: var(--vf-bg);
+  color: var(--vf-text-dark);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, sans-serif;
+  line-height: 1.6;
+  width: 100%;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.vendoflow-page *,
+.vendoflow-page *::before,
+.vendoflow-page *::after {
+  box-sizing: border-box;
+}
+
+.vendoflow-page h1,
+.vendoflow-page h2,
+.vendoflow-page h3,
+.vendoflow-page h4 {
+  font-family: Georgia, "Times New Roman", "Playfair Display", serif;
+  font-weight: 700;
+  color: var(--vf-text-dark);
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.vendoflow-page p {
+  margin: 0;
+}
+
+.vendoflow-page a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ===================================================
+   LAYOUT CONTAINER
+   ================================================= */
+.vendoflow-page .vf-container {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+/* ===================================================
+   1. NAVBAR
+   ================================================= */
+.vendoflow-page .vf-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background-color: rgba(255, 249, 244, 0.94);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--vf-border);
+  padding: 0.85rem 1.5rem;
+}
+
+.vendoflow-page .vf-nav-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  height: 54px;
+}
+
+.vendoflow-page .vf-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--vf-text-dark);
+  flex-shrink: 0;
+}
+
+.vendoflow-page .vf-brand-mark {
+  width: 2.1rem;
+  height: 2.1rem;
+  border-radius: 50%;
+  background-color: var(--vf-burgundy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+}
+
+.vendoflow-page .vf-brand-name--light {
+  color: #fff;
+}
+
+.vendoflow-page .vf-nav-toggle {
+  display: none;
+}
+
+.vendoflow-page .vf-nav-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0.4rem;
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--vf-border);
+  border-radius: 8px;
+}
+
+.vendoflow-page .vf-nav-burger span {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background-color: var(--vf-text-dark);
+  border-radius: 2px;
+  transition: all 0.2s ease;
+}
+
+.vendoflow-page .vf-nav-menu {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1;
+  gap: 2rem;
+}
+
+.vendoflow-page .vf-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+}
+
+.vendoflow-page .vf-nav-links a {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--vf-text-dark);
+  transition: color 0.15s ease;
+}
+
+.vendoflow-page .vf-nav-links a:hover {
+  color: var(--vf-burgundy);
+}
+
+.vendoflow-page .vf-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  flex-shrink: 0;
+}
+
+.vendoflow-page .vf-login-link {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--vf-text-dark);
+  transition: color 0.15s ease;
+}
+
+.vendoflow-page .vf-login-link:hover {
+  color: var(--vf-burgundy);
+}
+
+.vendoflow-page .vf-btn-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: var(--vf-burgundy);
+  color: #fff;
+  padding: 0.65rem 1.35rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.vendoflow-page .vf-btn-cta:hover {
+  background-color: var(--vf-burgundy-hover);
+  transform: translateY(-1px);
+}
+
+/* ===================================================
+   BOUTONS GÉNÉRAUX
+   ================================================= */
+.vendoflow-page .vf-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--vf-burgundy);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.95rem 1.85rem;
+  border-radius: 999px;
+  box-shadow: 0 8px 20px rgba(165, 31, 61, 0.22);
+  transition: all 0.2s ease;
+}
+
+.vendoflow-page .vf-btn-primary:hover {
+  background-color: var(--vf-burgundy-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(165, 31, 61, 0.3);
+}
+
+.vendoflow-page .vf-btn-primary--light {
+  background-color: #fff;
+  color: var(--vf-burgundy-dark);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.vendoflow-page .vf-btn-primary--light:hover {
+  background-color: var(--vf-bg);
+  transform: translateY(-2px);
+}
+
+.vendoflow-page .vf-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: #fff;
+  color: var(--vf-text-dark);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.95rem 1.65rem;
+  border: 1px solid var(--vf-border);
+  border-radius: 999px;
+  box-shadow: var(--vf-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.vendoflow-page .vf-btn-secondary:hover {
+  border-color: var(--vf-burgundy);
+  color: var(--vf-burgundy);
+  transform: translateY(-2px);
+}
+
+.vendoflow-page .vf-play-icon {
+  font-size: 0.75rem;
+  color: var(--vf-burgundy);
+}
+
+/* ===================================================
+   2. HERO SECTION
+   ================================================= */
+.vendoflow-page .vf-hero {
+  padding: 4rem 1.5rem 3.5rem;
+}
+
+.vendoflow-page .vf-hero-container {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.vendoflow-page .vf-hero-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.35rem;
+}
+
+.vendoflow-page .vf-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid var(--vf-border);
+  padding: 0.35rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--vf-burgundy);
+  box-shadow: var(--vf-shadow-sm);
+}
+
+.vendoflow-page .vf-badge-star {
+  font-size: 0.75rem;
+}
+
+.vendoflow-page .vf-hero-title {
+  font-size: clamp(2.75rem, 5vw, 4.25rem);
+  line-height: 1.06;
+  letter-spacing: -0.03em;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-highlight {
+  color: var(--vf-burgundy);
+  font-style: italic;
+}
+
+.vendoflow-page .vf-hero-subtitle {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--vf-text-muted);
+  max-width: 530px;
+}
+
+.vendoflow-page .vf-hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+.vendoflow-page .vf-hero-trust {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--vf-text-muted);
+  margin-top: 0.4rem;
+}
+
+/* Visuel Hero avec cadre blanc & badges flottants */
+.vendoflow-page .vf-hero-visual {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.vendoflow-page .vf-hero-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  border: 7px solid #fff;
+  border-radius: 30px;
+  overflow: visible;
+  box-shadow: 0 25px 55px rgba(53, 16, 20, 0.12);
+  background-color: #fff;
+}
+
+.vendoflow-page .vf-hero-img {
+  width: 100%;
+  height: auto;
+  border-radius: 23px;
+  display: block;
+  object-fit: cover;
+}
+
+.vendoflow-page .vf-float-badge {
+  position: absolute;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 14px;
+  padding: 0.65rem 0.95rem;
+  box-shadow: 0 14px 30px rgba(53, 16, 20, 0.14);
+}
+
+.vendoflow-page .vf-float-badge--order {
+  bottom: -18px;
+  left: -18px;
+}
+
+.vendoflow-page .vf-float-badge--stat {
+  top: -18px;
+  right: -18px;
+}
+
+.vendoflow-page .vf-float-icon {
+  font-size: 1.2rem;
+}
+
+.vendoflow-page .vf-stat-arrow {
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 50%;
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.vendoflow-page .vf-float-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.vendoflow-page .vf-float-text strong {
+  font-size: 0.92rem;
+  color: var(--vf-text-dark);
+  line-height: 1.2;
+}
+
+.vendoflow-page .vf-float-text small {
+  font-size: 0.78rem;
+  color: var(--vf-text-muted);
+}
+
+/* ===================================================
+   3. BANDEAU BORDEAUX FONCÉ SOUS LE HERO
+   ================================================= */
+.vendoflow-page .vf-value-strip {
+  max-width: 1180px;
+  margin: 1.5rem auto 4rem;
+  padding: 0 1.5rem;
+}
+
+.vendoflow-page .vf-value-strip-inner {
+  background-color: var(--vf-burgundy-dark);
+  color: #fff;
+  border-radius: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  box-shadow: var(--vf-shadow-md);
+}
+
+.vendoflow-page .vf-value-col {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 1.35rem 1.4rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.vendoflow-page .vf-value-col:last-child {
+  border-right: none;
+}
+
+.vendoflow-page .vf-value-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.vendoflow-page .vf-value-content strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.vendoflow-page .vf-value-content p {
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* ===================================================
+   STRUCTURES DES SECTIONS GÉNÉRALES
+   ================================================= */
+.vendoflow-page .vf-section {
+  padding: 5rem 0;
+}
+
+.vendoflow-page .vf-section-header {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto 3.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.vendoflow-page .vf-kicker {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vf-burgundy);
+}
+
+.vendoflow-page .vf-kicker--light {
+  color: var(--vf-rose-pale);
+}
+
+.vendoflow-page .vf-section-title {
+  font-size: clamp(2rem, 3.8vw, 3rem);
+  line-height: 1.14;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-section-title--light {
+  color: #fff;
+}
+
+.vendoflow-page .vf-section-lead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--vf-text-muted);
+}
+
+.vendoflow-page .vf-section-lead--light {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+/* Checkmarks universels */
+.vendoflow-page .vf-check {
+  color: var(--vf-burgundy);
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* ===================================================
+   4. SECTION ÉTAPES (01, 02, 03)
+   ================================================= */
+.vendoflow-page .vf-steps-card {
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  box-shadow: var(--vf-shadow-sm);
+}
+
+.vendoflow-page .vf-step-item {
+  padding: 2.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.85rem;
+  border-right: 1px solid var(--vf-border);
+}
+
+.vendoflow-page .vf-step-item:last-child {
+  border-right: none;
+}
+
+.vendoflow-page .vf-step-num {
+  font-family: Georgia, serif;
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--vf-rose-pale);
+}
+
+.vendoflow-page .vf-step-item h3 {
+  font-size: 1.35rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-step-item p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--vf-text-muted);
+}
+
+/* ===================================================
+   5. SECTION PROBLÈME / CONSTAT
+   ================================================= */
+.vendoflow-page .vf-problem-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.vendoflow-page .vf-problem-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vendoflow-page .vf-problem-card {
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 18px;
+  padding: 2.5rem;
+  box-shadow: var(--vf-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.vendoflow-page .vf-problem-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.vendoflow-page .vf-problem-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.98rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-problem-punchline {
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--vf-border);
+  color: var(--vf-burgundy);
+  font-size: 1.05rem;
+}
+
+/* ===================================================
+   6. SECTION FONCTIONNALITÉS (BORDEAUX FONCÉ)
+   ================================================= */
+.vendoflow-page .vf-section--features-dark {
+  background-color: var(--vf-burgundy-dark);
+  color: #fff;
+}
+
+.vendoflow-page .vf-features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.vendoflow-page .vf-feature-box {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  box-shadow: var(--vf-shadow-md);
+  transition: transform 0.2s ease;
+}
+
+.vendoflow-page .vf-feature-box:hover {
+  transform: translateY(-4px);
+}
+
+.vendoflow-page .vf-feature-icon-bubble {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 10px;
+  background-color: var(--vf-rose-light);
+  border: 1px solid var(--vf-rose-pale);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.vendoflow-page .vf-feature-box h3 {
+  font-size: 1.2rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-feature-box p {
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--vf-text-muted);
+}
+
+/* ===================================================
+   7. SECTION POURQUOI VENDOFLOW
+   ================================================= */
+.vendoflow-page .vf-why-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 3.5rem;
+}
+
+.vendoflow-page .vf-why-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.vendoflow-page .vf-why-list {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.vendoflow-page .vf-why-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.98rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-why-card {
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 18px;
+  padding: 2.75rem 2.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+.vendoflow-page .vf-why-card h3 {
+  font-size: 1.45rem;
+  line-height: 1.25;
+}
+
+.vendoflow-page .vf-why-card p {
+  font-size: 0.98rem;
+  line-height: 1.6;
+  color: var(--vf-text-muted);
+}
+
+.vendoflow-page .vf-why-btn {
+  margin-top: 0.5rem;
+}
+
+/* ===================================================
+   8. SECTION TÉMOIGNAGES
+   ================================================= */
+.vendoflow-page .vf-section--testimonials {
+  background-color: var(--vf-bg-subtle);
+}
+
+.vendoflow-page .vf-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.vendoflow-page .vf-testi-card {
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 16px;
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: var(--vf-shadow-sm);
+}
+
+.vendoflow-page .vf-testi-stars {
+  color: #D48B38;
+  letter-spacing: 0.15em;
+  font-size: 0.95rem;
+}
+
+.vendoflow-page .vf-testi-card blockquote {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--vf-text-dark);
+  font-style: italic;
+  flex: 1;
+}
+
+.vendoflow-page .vf-testi-card footer {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--vf-border);
+  padding-top: 0.85rem;
+}
+
+.vendoflow-page .vf-testi-avatar {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 50%;
+  background-color: var(--vf-burgundy);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: Georgia, serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+
+.vendoflow-page .vf-testi-card footer strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-testi-card footer small {
+  font-size: 0.8rem;
+  color: var(--vf-text-muted);
+}
+
+/* ===================================================
+   9. SECTION TARIFS / OFFRE
+   ================================================= */
+.vendoflow-page .vf-pricing-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.vendoflow-page .vf-pricing-card {
+  background-color: #fff;
+  border: 2px solid var(--vf-burgundy);
+  border-radius: 22px;
+  padding: 3rem 2.5rem;
+  max-width: 480px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1.25rem;
+  box-shadow: var(--vf-shadow-lg);
+  position: relative;
+}
+
+.vendoflow-page .vf-pricing-tag {
+  position: absolute;
+  top: -14px;
+  background-color: var(--vf-burgundy);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.9rem;
+  border-radius: 999px;
+}
+
+.vendoflow-page .vf-pricing-card h3 {
+  font-size: 1.6rem;
+  margin-top: 0.5rem;
+}
+
+.vendoflow-page .vf-price-val {
+  font-family: Georgia, serif;
+  font-size: 3.25rem;
+  font-weight: 700;
+  color: var(--vf-burgundy);
+  line-height: 1;
+}
+
+.vendoflow-page .vf-pricing-sub {
+  font-size: 0.95rem;
+  color: var(--vf-text-muted);
+  margin-top: -0.5rem;
+}
+
+.vendoflow-page .vf-pricing-list {
+  list-style: none;
+  margin: 1rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  text-align: left;
+  width: 100%;
+}
+
+.vendoflow-page .vf-pricing-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  font-size: 0.95rem;
+  color: var(--vf-text-dark);
+}
+
+.vendoflow-page .vf-pricing-btn {
+  width: 100%;
+}
+
+/* ===================================================
+   10. SECTION FAQ (ACCORDÉON)
+   ================================================= */
+.vendoflow-page .vf-faq-accordion {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.vendoflow-page .vf-faq-item {
+  background-color: #fff;
+  border: 1px solid var(--vf-border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--vf-shadow-sm);
+  transition: border-color 0.2s ease;
+}
+
+.vendoflow-page .vf-faq-item[open] {
+  border-color: var(--vf-burgundy);
+}
+
+.vendoflow-page .vf-faq-summary {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+  font-size: 1.02rem;
+  color: var(--vf-text-dark);
+  cursor: pointer;
+  user-select: none;
+}
+
+.vendoflow-page .vf-faq-summary::-webkit-details-marker {
+  display: none;
+}
+
+.vendoflow-page .vf-faq-arrow {
+  font-size: 1.3rem;
+  font-weight: 400;
+  color: var(--vf-burgundy);
+  transition: transform 0.2s ease;
+}
+
+.vendoflow-page .vf-faq-item[open] .vf-faq-arrow {
+  transform: rotate(45deg);
+}
+
+.vendoflow-page .vf-faq-body {
+  padding: 0 1.5rem 1.35rem;
+}
+
+.vendoflow-page .vf-faq-body p {
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--vf-text-muted);
+}
+
+/* ===================================================
+   11. CTA FINAL (BORDEAUX FONCÉ)
+   ================================================= */
+.vendoflow-page .vf-cta-final {
+  background-color: var(--vf-burgundy-dark);
+  color: #fff;
+  padding: 6rem 1.5rem;
+}
+
+.vendoflow-page .vf-cta-final-inner {
+  text-align: center;
+  max-width: 680px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.vendoflow-page .vf-cta-final-title {
+  color: #fff;
+  font-size: clamp(2.2rem, 4vw, 3.25rem);
+  line-height: 1.12;
+}
+
+.vendoflow-page .vf-cta-final-sub {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.vendoflow-page .vf-cta-final-actions {
+  margin-top: 0.75rem;
+}
+
+/* ===================================================
+   12. FOOTER
+   ================================================= */
+.vendoflow-page .vf-footer {
+  background-color: #240a0e;
+  color: #fff;
+  padding: 4.5rem 0 2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vendoflow-page .vf-footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.2fr;
+  gap: 3rem;
+  margin-bottom: 3rem;
+}
+
+.vendoflow-page .vf-footer-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.vendoflow-page .vf-footer-brand p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  max-width: 320px;
+}
+
+.vendoflow-page .vf-footer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.vendoflow-page .vf-footer-col h4 {
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.35rem;
+}
+
+.vendoflow-page .vf-footer-col a,
+.vendoflow-page .vf-footer-col span {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+  transition: color 0.15s ease;
+}
+
+.vendoflow-page .vf-footer-col a:hover {
+  color: #fff;
+}
+
+.vendoflow-page .vf-footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 1.75rem;
+  text-align: center;
+}
+
+.vendoflow-page .vf-footer-bottom p {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.85rem;
+}
+
+/* ===================================================
+   RESPONSIVE
+   1024px, 768px, 640px, 480px, 360px
+   ================================================= */
+@media (max-width: 1024px) {
+  .vendoflow-page .vf-hero-container {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .vendoflow-page .vf-hero-visual {
+    order: 2;
+  }
+
+  .vendoflow-page .vf-hero-copy {
+    order: 1;
+    align-items: center;
+    text-align: center;
+  }
+
+  .vendoflow-page .vf-hero-subtitle {
+    max-width: 100%;
+  }
+
+  .vendoflow-page .vf-hero-actions,
+  .vendoflow-page .vf-hero-trust {
+    justify-content: center;
+  }
+
+  .vendoflow-page .vf-value-strip-inner {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vendoflow-page .vf-value-col:nth-child(2) {
+    border-right: none;
+  }
+
+  .vendoflow-page .vf-value-col:nth-child(1),
+  .vendoflow-page .vf-value-col:nth-child(2) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .vendoflow-page .vf-features-grid,
+  .vendoflow-page .vf-testimonials-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .vendoflow-page .vf-problem-grid,
+  .vendoflow-page .vf-why-grid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+
+  .vendoflow-page .vf-footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 2.5rem;
+  }
+}
+
+@media (max-width: 900px) {
+  .vendoflow-page .vf-nav-burger {
+    display: flex;
+  }
+
+  .vendoflow-page .vf-nav-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: rgba(255, 249, 244, 0.98);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--vf-border);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.5rem;
+    gap: 1.25rem;
+    box-shadow: var(--vf-shadow-md);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition: all 0.2s ease;
+  }
+
+  .vendoflow-page .vf-nav-toggle:checked ~ .vf-nav-menu {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  .vendoflow-page .vf-nav-links {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+  }
+
+  .vendoflow-page .vf-nav-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.85rem;
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid var(--vf-border);
+  }
+
+  .vendoflow-page .vf-btn-cta {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .vendoflow-page .vf-steps-card {
+    grid-template-columns: 1fr;
+  }
+
+  .vendoflow-page .vf-step-item {
+    border-right: none;
+    border-bottom: 1px solid var(--vf-border);
+    padding: 2rem 1.5rem;
+  }
+
+  .vendoflow-page .vf-step-item:last-child {
+    border-bottom: none;
+  }
+
+  .vendoflow-page .vf-features-grid,
+  .vendoflow-page .vf-testimonials-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vendoflow-page .vf-value-strip-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .vendoflow-page .vf-value-col {
+    border-right: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .vendoflow-page .vf-value-col:last-child {
+    border-bottom: none;
+  }
+
+  .vendoflow-page .vf-float-badge--order {
+    left: 8px;
+    bottom: -14px;
+  }
+
+  .vendoflow-page .vf-float-badge--stat {
+    right: 8px;
+    top: -14px;
+  }
+}
+
+@media (max-width: 540px) {
+  .vendoflow-page .vf-hero {
+    padding: 2.5rem 1rem 2rem;
+  }
+
+  .vendoflow-page .vf-section {
+    padding: 3.5rem 0;
+  }
+
+  .vendoflow-page .vf-hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .vendoflow-page .vf-btn-primary,
+  .vendoflow-page .vf-btn-secondary {
+    width: 100%;
+  }
+
+  .vendoflow-page .vf-hero-trust {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .vendoflow-page .vf-problem-card,
+  .vendoflow-page .vf-why-card,
+  .vendoflow-page .vf-pricing-card {
+    padding: 1.75rem 1.25rem;
+  }
+
+  .vendoflow-page .vf-footer-grid {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}

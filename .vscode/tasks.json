@@ -1,0 +1,47 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Validate VendoFlow tests",
+			"type": "shell",
+			"command": "npm test -- --run",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Validate tests with low parallelism",
+			"type": "shell",
+			"command": "npx vitest run --maxWorkers=1 --minWorkers=1",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect Vitest options",
+			"type": "shell",
+			"command": "npx vitest --help | findstr /I \"pool worker thread max min\"",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect Vitest help",
+			"type": "shell",
+			"command": "npx vitest --help",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Inspect vitest run options",
+			"type": "shell",
+			"command": "npx vitest run --help",
+			"isBackground": false,
+			"problemMatcher": []
+		},
+		{
+			"label": "Run vitest single worker",
+			"type": "shell",
+			"command": "npx vitest run --pool=threads --maxWorkers=1 --no-file-parallelism",
+			"isBackground": false,
+			"problemMatcher": []
+		}
+	]
+}
