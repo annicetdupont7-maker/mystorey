@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description:
     "MYSTOREY aide les vendeuses à créer leur boutique, gérer leurs produits et commandes, relancer leurs clientes et développer leur activité simplement.",
   applicationName: "MYSTOREY",
+  creator: "MYSTOREY",
+  publisher: "MYSTOREY",
   keywords: [
     "boutique en ligne",
     "commerce bénin",

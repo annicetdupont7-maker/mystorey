@@ -2111,6 +2111,20 @@ a { color: inherit; }
   margin-bottom: 2.4rem;
 }
 
+.publish-next-step { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; margin-bottom: 1.25rem; padding: 1.35rem 1.5rem; border: 1px solid color-mix(in srgb, var(--brand), transparent 70%); border-radius: 1.15rem; background: linear-gradient(135deg, #fff9f4, #fff 72%); box-shadow: var(--shadow-sm); }
+.publish-next-step h2 { margin: .2rem 0 .35rem; font-size: clamp(1.35rem, 3vw, 1.8rem); }
+.publish-next-step p { margin: 0; max-width: 42rem; color: var(--ink-soft); line-height: 1.5; }
+.publish-next-step ol { display: flex; flex-wrap: wrap; gap: .45rem .9rem; margin: .9rem 0 0; padding: 0; list-style: none; color: var(--ink-soft); font-size: .82rem; font-weight: 700; }
+.publish-next-step li::before { content: "○"; margin-right: .35rem; color: var(--brand); }
+.publish-next-step li.is-done::before { content: "✓"; }
+.publish-next-step > .vf-button { flex: none; max-width: 18rem; text-align: center; }
+
+@media (max-width: 760px) {
+  .publish-next-step { align-items: stretch; flex-direction: column; padding: 1.15rem; }
+  .publish-next-step > .vf-button { width: 100%; max-width: none; }
+  .publish-next-step ol { display: grid; gap: .45rem; }
+}
+
 .dashboard-orders-list {
   display: grid;
 }
@@ -4019,6 +4033,15 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .appearance-controls .field select,
 .appearance-controls .field input:not([type="color"]) { width: 100%; min-width: 0; }
 .appearance-controls .field select { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appearance-publish-button { min-height: 3.15rem; font-size: 1rem; }
+.appearance-published { display: grid; gap: .7rem; margin-top: .8rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--ok), transparent 58%); border-radius: .9rem; background: var(--ok-soft); color: var(--ink); }
+.appearance-published strong { color: var(--ok); }
+.appearance-published-actions { display: flex; align-items: center; gap: .55rem; flex-wrap: wrap; }
+.appearance-published-actions .vf-button { width: auto; margin-top: 0; }
+@media (max-width: 760px) {
+  .appearance-published-actions { align-items: stretch; flex-direction: column; }
+  .appearance-published-actions .vf-button { width: 100%; }
+}
 .appearance-notice { animation: notice-in .2s ease both, notice-out .35s ease 3s forwards; }
 @keyframes notice-in { from { opacity: 0; transform: translateY(-.25rem); } to { opacity: 1; transform: translateY(0); } }
 @keyframes notice-out { to { opacity: 0; visibility: hidden; } }

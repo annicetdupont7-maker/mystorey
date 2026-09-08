@@ -65,6 +65,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
+      {store.status !== "published" && <section className="publish-next-step"><div><p className="vf-eyebrow">Dernière étape</p><h2>Votre boutique est presque prête</h2><p>Choisissez une apparence, puis publiez votre boutique pour la rendre accessible à vos clientes.</p><ol><li className="is-done">Boutique créée</li><li className={products.length > 0 ? "is-done" : ""}>Produits ajoutés</li><li>Apparence à choisir</li><li>Boutique à publier</li></ol></div><Link className="vf-button" href="/dashboard/storefront/appearance">Choisir un thème et publier ma boutique <ArrowRight size={16} /></Link></section>}
       {ordersError && <p className="banner-warn" role="status">{ordersError} Exécutez la migration &quot;orders &amp; produit vedette&quot; dans le Supabase SQL Editor pour activer le suivi des commandes.</p>}
       
       {/* Hero Sales KPI - Prominent */}

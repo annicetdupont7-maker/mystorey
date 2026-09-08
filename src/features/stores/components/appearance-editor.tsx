@@ -8,7 +8,7 @@ import type { PresetId, StoreTheme, ThemeTokens } from "@/features/themes/theme-
 import { Storefront } from "@/features/storefront/components";
 import { demoProducts, type ProductView } from "@/features/storefront/storefront-types";
 
-type AppearanceEditorProps = { storeId: string; initialPreset: PresetId; initialOverrides?: StoreTheme["overrides"]; initialLayout?: StoreTheme["layout"]; storeName?: string; storeSlogan?: string; storeDescription?: string; storeLogoUrl?: string | null; storeCoverUrl?: string | null; storeSlug?: string; products?: ProductView[]; whatsapp?: string | null };
+type AppearanceEditorProps = { storeId: string; initialPreset: PresetId; initialOverrides?: StoreTheme["overrides"]; initialLayout?: StoreTheme["layout"]; storeName?: string; storeSlogan?: string; storeDescription?: string; storeLogoUrl?: string | null; storeCoverUrl?: string | null; storeSlug?: string; storeStatus?: string; products?: ProductView[]; whatsapp?: string | null };
 type ButtonStyle = ThemeTokens["components"]["buttonStyle"];
 type CardStyle = ThemeTokens["components"]["cardStyle"];
 type HeaderStyle = ThemeTokens["layout"]["headerStyle"];
@@ -16,7 +16,7 @@ type HeroVariant = ThemeTokens["layout"]["heroVariant"];
 type Spacing = ThemeTokens["layout"]["spacing"];
 type CatalogLayout = ThemeTokens["layout"]["catalogLayout"];
 
-export function AppearanceEditor({ storeId, initialPreset, initialOverrides, initialLayout, storeName = "Votre boutique", storeSlogan, storeDescription, storeLogoUrl, storeCoverUrl, storeSlug, products = demoProducts, whatsapp }: AppearanceEditorProps) {
+export function AppearanceEditor({ storeId, initialPreset, initialOverrides, initialLayout, storeName = "Votre boutique", storeSlogan, storeDescription, storeLogoUrl, storeCoverUrl, storeSlug, storeStatus, products = demoProducts, whatsapp }: AppearanceEditorProps) {
   const defaults = THEME_PRESETS[initialPreset].tokens;
   const [preset, setPreset] = useState<PresetId>(initialPreset);
   const [primary, setPrimary] = useState(initialOverrides?.colors?.primary ?? "");
@@ -68,6 +68,8 @@ export function AppearanceEditor({ storeId, initialPreset, initialOverrides, ini
     setCatalogLayout(d.layout.catalogLayout); setColumns(d.layout.columns); setHeaderStyle(d.layout.headerStyle); setHeroVariant(d.layout.heroVariant); setSpacing(d.layout.spacing);
   };
 
+  const publicUrl = storeSlug ? `/store/${storeSlug}` : "/dashboard";
+  const isPublished = storeStatus === "published" || state.success === "Thème publié.";
   return <form ref={formRef} action={action} className="appearance-editor">
     <input type="hidden" name="storeId" value={storeId} />
     <input type="hidden" name="presetId" value={preset} />
@@ -77,7 +79,7 @@ export function AppearanceEditor({ storeId, initialPreset, initialOverrides, ini
     <aside className="appearance-controls">
       <p className="vf-eyebrow">Apparence</p>
       <h1>Votre univers de marque.</h1>
-      <p className="muted">Partez d’un thème puis faites-le vôtre. Tout reste contrôlé : votre vitrine garde sa performance et son accessibilité.</p>
+      <p className="muted">Un thème définit les couleurs, la mise en page et l’ambiance de votre vitrine. Gardez le thème proposé ou personnalisez-le, puis publiez.</p>
 
       <label className="field"><span>Thème de départ</span>
         <select value={preset} onChange={(e) => applyPresetDefaults(e.target.value as PresetId)}>
@@ -155,7 +157,8 @@ export function AppearanceEditor({ storeId, initialPreset, initialOverrides, ini
       {state.success && <p key={state.successId} className="form-success appearance-notice" role="status">{state.success}</p>}
       <button type="button" className="text-button" onClick={resetTheme} disabled={pending}>Réinitialiser le thème</button>
       <button className="vf-button" name="publish" value="false" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer comme brouillon"}</button>
-      <button className="vf-button vf-button--dark" name="publish" value="true" disabled={pending}>{pending ? "Publication…" : "Publier le thème"}</button>
+      <button className="vf-button vf-button--dark appearance-publish-button" name="publish" value="true" disabled={pending}>{pending ? "Publication…" : "Publier ma boutique"}</button>
+      {isPublished && <div className="appearance-published" role="status"><strong>🎉 Votre boutique est maintenant en ligne !</strong><div className="appearance-published-actions"><a className="vf-button" href={publicUrl} target="_blank" rel="noopener noreferrer">Voir ma boutique</a><button type="button" className="vf-button vf-button--ghost" onClick={() => navigator.clipboard?.writeText(`${window.location.origin}${publicUrl}`)}>Copier le lien</button><span className="muted">Vous pouvez encore modifier l’apparence.</span></div></div>}
     </aside>
     <section className="appearance-preview">
       <span className="vf-eyebrow">Aperçu réel</span>

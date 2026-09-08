@@ -28,7 +28,6 @@ export function OnboardingForm(){
       <h1>Choisissez votre adresse.</h1>
       <p className="muted">Elle deviendra votre lien public MYSTOREY.</p>
       <label className="field"><span>mystorey.app/store/</span><input name="slug" value={slug} onChange={e=>setSlug(slugify(e.target.value))} placeholder="amina-fashion"/></label>
-        <label className="field"><span>mystorey.app/store/</span><input name="slug" value={slug} onChange={e=>setSlug(slugify(e.target.value))} placeholder="amina-fashion"/></label>
       {state.fieldErrors?.slug&&<p className="form-error">{state.fieldErrors.slug[0]}</p>}
       <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(1)}>Retour</button><button type="button" className="vf-button" disabled={slug.length<3} onClick={()=>setStep(3)}>Continuer</button></div>
     </section>}
@@ -50,7 +49,7 @@ export function OnboardingForm(){
       <input type="hidden" name="slug" value={slug}/>
       <input type="hidden" name="whatsapp" value={whatsapp}/>
       {state.error&&<p className="form-error" role="alert">{state.error}</p>}
-      <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(3)}>Retour</button><button className="vf-button" disabled={pending}>{pending?"Création…":"Accéder à mon espace vendeur"}</button></div>
+      <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(3)}>Retour</button><button className="vf-button" disabled={pending}>{pending?"Création…":"Finaliser ma boutique"}</button></div>
     </section>}
   </form>;
 }

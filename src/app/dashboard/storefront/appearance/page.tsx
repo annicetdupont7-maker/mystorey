@@ -18,7 +18,7 @@ export default async function AppearancePage() {
 
   return (
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
-      <AppearanceEditor storeId={store.id} initialPreset={(theme?.preset_id ?? "modern") as PresetId} initialOverrides={theme?.overrides} initialLayout={theme?.layout} storeName={store.name} storeSlogan={store.slogan ?? undefined} storeDescription={store.description ?? undefined} storeLogoUrl={store.logo_url} storeCoverUrl={store.cover_url} storeSlug={store.slug} products={(productsResult?.products ?? []).filter((product) => product.is_available).map(toProductView)} whatsapp={store.whatsapp} />
+      <AppearanceEditor storeId={store.id} initialPreset={(theme?.preset_id ?? "modern") as PresetId} initialOverrides={theme?.overrides} initialLayout={theme?.layout} storeName={store.name} storeSlogan={store.slogan ?? undefined} storeDescription={store.description ?? undefined} storeLogoUrl={store.logo_url} storeCoverUrl={store.cover_url} storeSlug={store.slug} storeStatus={store.status} products={(productsResult?.products ?? []).filter((product) => product.is_available).map(toProductView)} whatsapp={store.whatsapp} />
     </DashboardShell>
   );
 }
