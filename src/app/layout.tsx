@@ -15,8 +15,8 @@ export const metadata: Metadata = {
   creator: "MYSTOREY",
   publisher: "MYSTOREY",
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
+    icon: [{ url: "/favicon.png?v=2", type: "image/png", sizes: "520x520" }],
+    shortcut: [{ url: "/favicon.png?v=2", type: "image/png", sizes: "520x520" }],
     apple: "/logo.png",
   },
   keywords: [
