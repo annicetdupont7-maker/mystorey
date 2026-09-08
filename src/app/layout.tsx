@@ -14,6 +14,11 @@ export const metadata: Metadata = {
   applicationName: "MYSTOREY",
   creator: "MYSTOREY",
   publisher: "MYSTOREY",
+  icons: {
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
   keywords: [
     "boutique en ligne",
     "commerce bénin",
@@ -33,6 +38,7 @@ export const metadata: Metadata = {
     siteName: "MYSTOREY",
     locale: "fr_FR",
     type: "website",
+    images: [{ url: "/logo.png", width: 1262, height: 1262, alt: "Logo MYSTOREY" }],
   },
   twitter: {
     card: "summary_large_image",
