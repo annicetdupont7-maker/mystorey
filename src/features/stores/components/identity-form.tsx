@@ -150,7 +150,7 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
             </div>
           </div>
           <label className="field"><span>WhatsApp</span>
-            <input name="whatsapp" defaultValue={whatsapp} placeholder="+225 07 00 00 00" />
+            <input name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" defaultValue={whatsapp} placeholder="+225 07 00 00 00" />
           </label>
         </section>
 

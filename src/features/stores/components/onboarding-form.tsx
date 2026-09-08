@@ -42,7 +42,7 @@ export function OnboardingForm(){
       <p className="vf-eyebrow">Étape 4 sur 4</p>
       <h1>Votre boutique est prête 🎉</h1>
       <p className="muted">Dernière étape : indiquez le numéro WhatsApp qui recevra vos commandes.</p>
-      <label className="field"><span>Numéro WhatsApp (recommandé)</span><input value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+237 6 90 00 00 00"/><small className="field-hint">Sans numéro, vos clients ne pourront pas commander. Il reste modifiable dans vos paramètres.</small></label>
+      <label className="field"><span>Numéro WhatsApp (recommandé)</span><input name="whatsappInput" type="tel" inputMode="tel" autoComplete="tel" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+237 6 90 00 00 00"/><small className="field-hint">Format international obligatoire avec + et l’indicatif pays, par exemple +237 6 90 00 00 00.</small></label>
       {state.fieldErrors?.whatsapp&&<p className="form-error">{state.fieldErrors.whatsapp[0]}</p>}
       <div className="onboarding-preview" style={{background:preview.tokens.colors.background,color:preview.tokens.colors.text}}><span style={{color:preview.tokens.colors.primary}}>Maison {name||"Vendo"}</span><strong style={{fontFamily:preview.tokens.typography.headingFont}}>Votre histoire commence ici.</strong><button type="button" style={{background:preview.tokens.colors.primary}}>Voir la collection</button></div>
       <input type="hidden" name="name" value={name}/>
