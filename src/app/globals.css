@@ -71,6 +71,40 @@
   --transition-slow: .25s ease;
 }
 
+/* Final narrow-screen guardrails for the main seller and storefront workflows. */
+@media (max-width: 640px) {
+  html, body { max-width: 100%; overflow-x: hidden; }
+  img, svg, video, canvas { max-width: 100%; }
+  button, input, select, textarea { max-width: 100%; }
+  .dashboard-main-inner { min-width: 0; padding: 1.25rem .85rem 2.5rem; }
+  .dashboard-header-copy { min-width: 0; padding-left: 3.2rem; }
+  .dashboard-header-copy h1, .page-head h1, .products-header h1 { overflow-wrap: anywhere; }
+  .dashboard-header-actions, .page-head, .products-header, .statistics-heading { align-items: stretch; flex-direction: column; gap: .8rem; }
+  .page-head > .vf-button, .products-header > .vf-button { width: 100%; }
+  .toolbar { align-items: stretch; flex-direction: column; }
+  .toolbar-search, .toolbar-select { width: 100%; min-width: 0; }
+  .order-toolbar { align-items: stretch; flex-direction: column; }
+  .order-filters { width: 100%; overflow-x: auto; flex-wrap: nowrap; padding-bottom: .25rem; }
+  .order-filter { flex: 0 0 auto; }
+  .order-card-top, .order-card-foot { align-items: stretch; flex-direction: column; gap: .65rem; }
+  .order-card-foot .order-foot-spacer { display: none; }
+  .order-items li { grid-template-columns: minmax(0, 1fr) auto; gap: .55rem; }
+  .admin-order-details summary { grid-template-columns: auto minmax(0, 1fr) auto; gap: .55rem; padding: .8rem; }
+  .admin-order-details summary > :nth-child(3), .admin-order-details summary > :nth-child(4) { display: none; }
+  .admin-order-detail-body { padding: .2rem .8rem .8rem; }
+  .identity-editor-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+  .identity-preview { position: static !important; max-height: none !important; }
+  .appearance-controls, .field-group { min-width: 0; }
+  .product-editor-actions, .product-editor-actions .vf-button { width: 100%; }
+  .price-group { align-items: stretch; flex-wrap: wrap; }
+  .price-group .field-input { flex: 1 1 10rem; }
+  .upload-preview-actions { display: grid; grid-template-columns: 1fr; }
+  .upload-preview-actions > * { width: 100%; }
+  .share-modal-backdrop { padding: 0; }
+  .share-modal { width: 100%; max-height: 92vh; overflow-y: auto; border-radius: 1rem 1rem 0 0; }
+  .share-url { overflow-wrap: anywhere; }
+}
+
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
