@@ -7,28 +7,41 @@ const validation = (result: { success: false; error: { flatten: () => { fieldErr
 export async function register(_: ActionState, formData: FormData): Promise<ActionState> {
   const result = credentialsSchema.safeParse({displayName:formData.get("displayName"),email:formData.get("email"),password:formData.get("password")});
   if(!result.success)return validation(result);
-  const supabase=await createSupabaseServerClient();
-  const { data, error }=await supabase.auth.signUp({email:result.data.email,password:result.data.password,options:{data:{display_name:result.data.displayName}}});
-  if(error){
-    if(error.code==="user_already_exists"||/already/i.test(error.message))return {error:"Un compte existe déjà avec cette adresse. Connectez-vous."};
-    return {error:"Impossible de créer le compte. Vérifiez l’adresse ou réessayez dans quelques minutes."};
+  let hasSession = false;
+  try {
+    const supabase=await createSupabaseServerClient();
+    const appUrl=process.env.NEXT_PUBLIC_APP_URL?.trim()||"https://mystorey-tau.vercel.app";
+    const { data, error }=await supabase.auth.signUp({email:result.data.email,password:result.data.password,options:{data:{display_name:result.data.displayName},emailRedirectTo:`${appUrl}/auth/callback`}});
+    if(error){
+      if(error.code==="user_already_exists"||/already/i.test(error.message))return {error:"Un compte existe déjà avec cette adresse. Connectez-vous."};
+      return {error:"Impossible de créer le compte. Vérifiez l’adresse ou réessayez dans quelques minutes."};
+    }
+    hasSession = Boolean(data.session);
+  } catch {
+    return {error:"Le service est momentanément indisponible. Vérifiez votre connexion puis réessayez."};
   }
-  if(data.session)redirect("/onboarding");
+  if(hasSession)redirect("/onboarding");
   return {success:"Compte créé. Un email de confirmation vient d’être envoyé — cliquez sur le lien pour activer votre espace vendeur.",email:result.data.email};
 }
 export async function login(_: ActionState, formData: FormData): Promise<ActionState> {
   const result=loginSchema.safeParse({email:formData.get("email"),password:formData.get("password")});
   if(!result.success)return validation(result);
-  const supabase=await createSupabaseServerClient();
-  const { error }=await supabase.auth.signInWithPassword(result.data);
-  if(error){
-    if(error.code==="email_not_confirmed")return {error:"Votre adresse n’est pas encore confirmée. Vérifiez votre boîte mail.",reason:"email_not_confirmed",email:result.data.email};
-    return {error:"Email ou mot de passe incorrect."};
+  let destination = "/onboarding";
+  try {
+    const supabase=await createSupabaseServerClient();
+    const { error }=await supabase.auth.signInWithPassword(result.data);
+    if(error){
+      if(error.code==="email_not_confirmed")return {error:"Votre adresse n’est pas encore confirmée. Vérifiez votre boîte mail.",reason:"email_not_confirmed",email:result.data.email};
+      return {error:"Email ou mot de passe incorrect."};
+    }
+    const { data: { user } }=await supabase.auth.getUser();
+    if(!user)return {error:"Session introuvable. Réessayez."};
+    const { count }=await supabase.from("stores").select("id",{count:"exact",head:true}).eq("owner_id",user.id);
+    destination = count ? "/dashboard" : "/onboarding";
+  } catch {
+    return {error:"Le service est momentanément indisponible. Vérifiez votre connexion puis réessayez."};
   }
-  const { data: { user } }=await supabase.auth.getUser();
-  if(!user)return {error:"Session introuvable. Réessayez."};
-  const { count }=await supabase.from("stores").select("id",{count:"exact",head:true}).eq("owner_id",user.id);
-  redirect(count ? "/dashboard" : "/onboarding");
+  redirect(destination);
 }
 export async function resendConfirmation(_: ActionState, formData: FormData): Promise<ActionState> {
   const email=String(formData.get("email")||"");
