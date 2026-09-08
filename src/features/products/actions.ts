@@ -9,7 +9,7 @@ async function confirmStoreOwner(supabase: StoreClient, storeId: string) { const
 async function ensureSubscriptionAllowsProductCreation(supabase: StoreClient, storeId: string) {
   const { data: sub } = await supabase.from("seller_subscriptions").select("plan_id,status,payment_status,expires_at").eq("store_id", storeId).maybeSingle();
   const isExpired = sub?.expires_at && new Date(sub.expires_at).getTime() <= Date.now();
-  const isPaidPlanActive = sub?.plan_id === "free" || (sub?.status === "active" && sub?.payment_status === "paid" && !isExpired);
+  const isPaidPlanActive = !sub || sub.plan_id === "free" || (sub.status === "active" && sub.payment_status === "paid" && !isExpired);
   if (!isPaidPlanActive) return { ok: false as const, message: "Votre abonnement n’est pas actif. Réactivez votre plan pour ajouter des produits." };
   const plan = getPlanById(sub?.plan_id ?? "free");
   const { count, error } = await supabase.from("products").select("id", { count: "exact", head: true }).eq("store_id", storeId);
