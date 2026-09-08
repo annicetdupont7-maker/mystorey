@@ -297,7 +297,7 @@ export function CartDrawer({ items, onClose, onChangeQty, whatsapp, storeSlug, d
 }
 
 export function StoreFooter({ name = "Maison Naya" }: { name?: string }) {
-  return <footer className="store-container store-footer">{name} · Une boutique créée avec VendoFlow</footer>;
+  return <footer className="store-container store-footer">{name} · Une boutique créée avec MYSTOREY</footer>;
 }
 
 export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }: { product: ProductView; storeName?: string; logoUrl?: string | null; whatsapp?: string; slug: string }) {

@@ -19,7 +19,7 @@ export function buildCheckoutMessage(order: OrderMessageView): string {
     .map((item) => `• ${item.quantity} × ${item.name} — ${formatPrice(item.unitPrice)} = ${formatPrice(item.unitPrice * item.quantity)}`)
     .join("\n");
   const parts = [
-    "🛍️ Nouvelle commande VendoFlow",
+     "🛍️ Nouvelle commande MYSTOREY",
     "",
     `Commande ${orderTag(order.order_number)}`,
     `Client : ${order.customer_name.trim() || "—"}`,
@@ -28,7 +28,7 @@ export function buildCheckoutMessage(order: OrderMessageView): string {
   if (order.customer_address.trim()) parts.push(`Livraison : ${order.customer_address.trim()}`);
   parts.push("", "Produits :", lines, "", `Total : ${formatPrice(order.total)}`);
   if (order.note.trim()) parts.push("", "Note :", order.note.trim());
-  parts.push("", "Merci pour votre commande ❤️ (gérée avec VendoFlow)");
+     parts.push("", "Merci pour votre commande ❤️ (gérée avec MYSTOREY)");
   return parts.join("\n");
 }
 

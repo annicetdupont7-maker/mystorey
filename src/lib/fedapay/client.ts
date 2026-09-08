@@ -48,7 +48,7 @@ export class FedapayClient {
       description: params.description,
       customer: {
         firstname: "Customer",
-        lastname: "VendoFlow",
+        lastname: "MYSTOREY",
       },
       metadata: {
         store_id: params.storeId,

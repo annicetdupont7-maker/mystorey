@@ -37,7 +37,7 @@ export async function initiateWavePayment(formData: FormData): Promise<void> {
     storeId: store.id,
     planId: plan.id,
     amount: plan.price,
-    description: `Abonnement ${plan.name} - VendoFlow`,
+    description: `Abonnement ${plan.name} - MYSTOREY`,
     returnUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions/success`,
     cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions`,
   });

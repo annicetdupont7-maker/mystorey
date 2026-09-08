@@ -21,10 +21,10 @@ export default function HomePage() {
     <main className="landing-page">
       <div className="landing-shell">
         <header className="landing-header">
-          <Link href="/" className="landing-brand" aria-label="VendoFlow home">
+          <Link href="/" className="landing-brand" aria-label="MYSTOREY home">
             <span className="brand-mark">V</span>
             <span>
-              <strong>VendoFlow</strong>
+              <strong>MYSTOREY</strong>
               <small>Commerce moderne</small>
             </span>
           </Link>
@@ -52,7 +52,7 @@ export default function HomePage() {
             </h1>
 
             <p className="hero-description">
-              VendoFlow t’aide à créer ta boutique, organiser tes produits, gérer tes commandes et booster tes ventes. Simple, rapide et pensé pour les femmes entrepreneures.
+              MYSTOREY t’aide à créer ta boutique, organiser tes produits, gérer tes commandes et booster tes ventes. Simple, rapide et pensé pour les femmes entrepreneures.
             </p>
 
             <div className="hero-actions">
@@ -69,7 +69,7 @@ export default function HomePage() {
           <div className="hero-right">
             <Image 
               src="/images/landing-hero.png" 
-              alt="VendoFlow Dashboard" 
+              alt="MYSTOREY Dashboard"
               width={600}
               height={500}
               priority
@@ -94,7 +94,7 @@ export default function HomePage() {
 
         <section className="stats-section">
           <div className="stats-left">
-            <h2>VendoFlow en chiffres</h2>
+            <h2>MYSTOREY en chiffres</h2>
             <div className="stats-grid">
               {stats.map((stat, idx) => (
                 <div key={idx} className="stat-card">

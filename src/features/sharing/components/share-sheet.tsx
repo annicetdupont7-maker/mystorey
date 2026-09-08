@@ -95,7 +95,7 @@ function ShareDialog({ open, onClose, title, eyebrow, description, url, urlLabel
   );
 }
 
-const realBaseUrl = () => (typeof window !== "undefined" ? window.location.origin : "https://vendoflow.app");
+const realBaseUrl = () => (typeof window !== "undefined" ? window.location.origin : "https://mystorey.app");
 
 export function ShareSheet({ product, storeSlug, label = "Partager" }: { product: { id: string; name: string; price: number; imageUrl?: string | null; available?: boolean }; storeSlug: string; label?: string }) {
   const [open, setOpen] = useState(false);

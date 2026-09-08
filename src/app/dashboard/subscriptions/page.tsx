@@ -25,7 +25,7 @@ export default async function SubscriptionsPage() {
         <div>
           <p className="vf-eyebrow">Abonnement</p>
           <h1>Choisissez votre plan.</h1>
-          <p className="muted">Activez le plan VendoFlow adapté à votre activité et profitez d’un accès fluide à votre boutique.</p>
+             <p className="muted">Activez le plan MYSTOREY adapté à votre activité et profitez d’un accès fluide à votre boutique.</p>
         </div>
       </section>
 

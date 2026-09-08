@@ -37,7 +37,7 @@ export function UsersView({ users }: { users: AdminUserRow[] }) {
         <div className="empty-state">
           <span className="empty-state-icon" aria-hidden="true"><UserRound size={22} /></span>
           <h2>Aucun utilisateur</h2>
-          <p>Personne ne s’est encore inscrit sur VendoFlow. Les premiers boutons « S’inscrire » de l’accueil créeront les premiers comptes.</p>
+           <p>Personne ne s’est encore inscrit sur MYSTOREY. Les premiers boutons « S’inscrire » de l’accueil créeront les premiers comptes.</p>
         </div>
       ) : paged.items.length === 0 ? (
         <div className="empty-state">

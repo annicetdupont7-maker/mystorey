@@ -18,7 +18,7 @@ export function OnboardingForm(){
     <div className="onboarding-progress"><span style={{width:`${step*25}%`}}/></div>
     {step===1&&<section>
       <p className="vf-eyebrow">Étape 1 sur 4</p>
-      <h1>Bienvenue sur VendoFlow 👋</h1>
+      <h1>Bienvenue sur MYSTOREY 👋</h1>
       <p className="muted">Comment pouvons-nous appeler votre boutique ?</p>
       <label className="field"><span>Nom de la boutique</span><input autoFocus value={name} onChange={e=>{setName(e.target.value);setSlug(slugify(e.target.value));}} placeholder="Amina Fashion"/></label>
       <button type="button" className="vf-button" disabled={name.trim().length<2} onClick={()=>setStep(2)}>Continuer</button>
@@ -26,8 +26,9 @@ export function OnboardingForm(){
     {step===2&&<section>
       <p className="vf-eyebrow">Étape 2 sur 4</p>
       <h1>Choisissez votre adresse.</h1>
-      <p className="muted">Elle deviendra votre lien public VendoFlow.</p>
-      <label className="field"><span>vendoflow.com/store/</span><input name="slug" value={slug} onChange={e=>setSlug(slugify(e.target.value))} placeholder="amina-fashion"/></label>
+      <p className="muted">Elle deviendra votre lien public MYSTOREY.</p>
+      <label className="field"><span>mystorey.app/store/</span><input name="slug" value={slug} onChange={e=>setSlug(slugify(e.target.value))} placeholder="amina-fashion"/></label>
+        <label className="field"><span>mystorey.app/store/</span><input name="slug" value={slug} onChange={e=>setSlug(slugify(e.target.value))} placeholder="amina-fashion"/></label>
       {state.fieldErrors?.slug&&<p className="form-error">{state.fieldErrors.slug[0]}</p>}
       <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(1)}>Retour</button><button type="button" className="vf-button" disabled={slug.length<3} onClick={()=>setStep(3)}>Continuer</button></div>
     </section>}

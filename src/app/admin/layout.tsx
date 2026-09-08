@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside className="admin-sidebar">
         <Link className="admin-brand" href="/admin">
           <span className="admin-brand-mark">V</span>
-          <span><strong>VendoFlow</strong><small>Administration</small></span>
+             <span><strong>MYSTOREY</strong><small>Administration</small></span>
         </Link>
         <AdminNav />
         <div className="admin-sidebar-foot">

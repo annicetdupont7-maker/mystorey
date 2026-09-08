@@ -3990,7 +3990,7 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .cart-bubble.is-visible { opacity: 1; transform: none; pointer-events: auto; }
 .cart-bubble-count { position: absolute; top: -.3rem; right: -.2rem; min-width: 1.25rem; height: 1.25rem; padding: 0 .25rem; display: grid; place-items: center; border-radius: 99px; background: var(--store-accent); color: var(--store-primary); font-size: .72rem; font-weight: 900; animation: pop .25s ease; }
 @keyframes pop { from { transform: scale(.4); } to { transform: none; } }
-.store-footer { padding: 2rem 0 3.5rem; border-top: 1px solid var(--store-line); font-size: .85rem; opacity: .75; }
+.store-footer { padding: 2rem 1rem 3.5rem; border-top: 1px solid var(--store-line); font-size: .85rem; opacity: .75; text-align: center; }
 
 /* The storefront is also rendered inside the appearance preview. Keep every
   surface fluid so the same layout works on a phone and in the preview pane. */

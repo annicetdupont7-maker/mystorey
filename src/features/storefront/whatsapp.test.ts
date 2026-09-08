@@ -7,7 +7,8 @@ describe("normalizeWhatsAppNumber", () => {
 describe("buildOrderMessage", () => {
   it("compose les lignes et le total", () => {
     const items = [{ id: "1", name: "Sac Studio", unitPrice: 19500, quantity: 2 }, { id: "2", name: "Veste Horizon", unitPrice: 28000, quantity: 1 }];
-    expect(buildOrderMessage(items, "Amina Fashion")).toBe(`Bonjour Amina Fashion 👋\n\nJe souhaite commander :\n• Sac Studio : 2 × 19\u202F500 FCFA = 39\u202F000 FCFA\n• Veste Horizon : 1 × 28\u202F000 FCFA = 28\u202F000 FCFA\n\nTotal : 67\u202F000 FCFA\n\nMerci ! (via VendoFlow)`);
+    expect(buildOrderMessage(items, "Amina Fashion")).toBe(`Bonjour Amina Fashion 👋\n\nJe souhaite commander :\n• Sac Studio : 2 × 19\u202F500 FCFA = 39\u202F000 FCFA\n• Veste Horizon : 1 × 28\u202F000 FCFA = 28\u202F000 FCFA\n\nTotal : 67\u202F000 FCFA\n\nMerci ! (via MYSTOREY)`);
+    expect(buildOrderMessage(items, "Amina Fashion")).toBe(`Bonjour Amina Fashion 👋\n\nJe souhaite commander :\n• Sac Studio : 2 × 19\u202F500 FCFA = 39\u202F000 FCFA\n• Veste Horizon : 1 × 28\u202F000 FCFA = 28\u202F000 FCFA\n\nTotal : 67\u202F000 FCFA\n\nMerci ! (via MYSTOREY)`);
   });
   it("retourne une chaîne vide sans article", () => { expect(buildOrderMessage([], "Amina Fashion")).toBe(""); });
 });
