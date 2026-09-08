@@ -1,6 +1,5 @@
 "use server";
 import { redirect } from "next/navigation";
-import { headers } from "next/headers";
 import { credentialsSchema, emailSchema, loginSchema, updatePasswordSchema, type ActionState } from "./schemas";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 const validation = (result: { success: false; error: { flatten: () => { fieldErrors: Record<string, string[]> } } }): ActionState => ({ fieldErrors: result.error.flatten().fieldErrors, error: "Vérifiez les informations saisies." });
@@ -55,22 +54,28 @@ export async function resendConfirmation(_: ActionState, formData: FormData): Pr
 export async function requestPasswordReset(_: ActionState, formData: FormData): Promise<ActionState> {
   const parsed=emailSchema.safeParse({email:String(formData.get("email")||"")});
   if(!parsed.success)return validation(parsed);
-  const requestHeaders=await headers();
-  const host=requestHeaders.get("host");
-  const proto=requestHeaders.get("x-forwarded-proto") ?? "http";
-  const redirectTo=host?`${proto}://${host}/auth/callback?next=/reset-password`:undefined;
-  const supabase=await createSupabaseServerClient();
-  const { error }=await supabase.auth.resetPasswordForEmail(parsed.data.email, redirectTo?{redirectTo}:undefined);
-  if(error)return {error:"Impossible d’envoyer le lien pour le moment. Réessayez dans quelques minutes."};
-  return {success:"Si un compte existe avec cette adresse, un email de récupération vient d’être envoyé — vérifiez votre boîte mail (pensez aux courriers indésirables)."};
+  try {
+    const supabase=await createSupabaseServerClient();
+    const appUrl=process.env.NEXT_PUBLIC_APP_URL?.trim()||"https://mystorey-tau.vercel.app";
+    const redirectTo=`${appUrl}/auth/callback?next=/reset-password`;
+    const { error }=await supabase.auth.resetPasswordForEmail(parsed.data.email,{redirectTo});
+    if(error)return {error:"Impossible d’envoyer le lien pour le moment. Vérifiez l’adresse et réessayez."};
+    return {success:"Si un compte existe avec cette adresse, un email de récupération vient d’être envoyé — vérifiez votre boîte mail (pensez aux courriers indésirables)."};
+  } catch {
+    return {error:"Le service est momentanément indisponible. Réessayez dans quelques minutes."};
+  }
 }
 export async function updatePassword(_: ActionState, formData: FormData): Promise<ActionState> {
   const result=updatePasswordSchema.safeParse({password:String(formData.get("password")||""),confirmPassword:String(formData.get("confirmPassword")||"")});
   if(!result.success)return validation(result);
-  const supabase=await createSupabaseServerClient();
-  const { error }=await supabase.auth.updateUser({password:result.data.password});
-  if(error)return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
-  await supabase.auth.signOut();
+  try {
+    const supabase=await createSupabaseServerClient();
+    const { error }=await supabase.auth.updateUser({password:result.data.password});
+    if(error)return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
+    await supabase.auth.signOut();
+  } catch {
+    return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
+  }
   redirect("/login?reset=success");
 }
 export async function logout(){const supabase=await createSupabaseServerClient(); await supabase.auth.signOut(); redirect("/login");}

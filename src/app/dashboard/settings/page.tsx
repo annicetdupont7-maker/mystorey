@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { SettingsForm } from "@/features/stores/components/settings-form";
+import { DeleteStoreForm } from "@/features/stores/components/delete-store-form";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
   const { store, user, supabase } = await getMyFirstStore();
@@ -16,5 +17,6 @@ export default async function SettingsPage() {
       </div>
     </section>
     <SettingsForm storeId={store.id} name={store.name} description={store.description ?? ""} whatsapp={store.whatsapp ?? ""} />
+    <DeleteStoreForm storeId={store.id} />
   </DashboardShell>;
 }
