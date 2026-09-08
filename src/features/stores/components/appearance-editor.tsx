@@ -152,7 +152,7 @@ export function AppearanceEditor({ storeId, initialPreset, initialOverrides, ini
       </fieldset>
 
       {state.error && <p className="form-error" role="alert">{state.error}</p>}
-      {state.success && <p className="form-success" role="status">{state.success}</p>}
+      {state.success && <p key={state.successId} className="form-success appearance-notice" role="status">{state.success}</p>}
       <button type="button" className="text-button" onClick={resetTheme} disabled={pending}>Réinitialiser le thème</button>
       <button className="vf-button" name="publish" value="false" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer comme brouillon"}</button>
       <button className="vf-button vf-button--dark" name="publish" value="true" disabled={pending}>{pending ? "Publication…" : "Publier le thème"}</button>

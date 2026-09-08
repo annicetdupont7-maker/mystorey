@@ -4014,6 +4014,9 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .appearance-controls .field select,
 .appearance-controls .field input:not([type="color"]) { width: 100%; min-width: 0; }
 .appearance-controls .field select { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.appearance-notice { animation: notice-in .2s ease both, notice-out .35s ease 3s forwards; }
+@keyframes notice-in { from { opacity: 0; transform: translateY(-.25rem); } to { opacity: 1; transform: translateY(0); } }
+@keyframes notice-out { to { opacity: 0; visibility: hidden; } }
 .field-group { margin: 1.1rem 0 0; border: 0; padding: 0; }
 .field-group legend { padding: 0; margin-bottom: .3rem; font-size: .76rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-soft); }
 .color-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 .9rem; }
@@ -4021,6 +4024,14 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .appearance-controls input[type="range"] { width: 100%; accent-color: var(--brand); }
 .appearance-preview { min-width: 0; overflow: hidden; border-radius: 1.1rem; box-shadow: var(--shadow-md); }
 .appearance-preview > .vf-eyebrow { display: block; padding: 0 .2rem .5rem; }
+.danger-zone { display: grid; gap: 1rem; margin-top: 1.5rem; padding: 1.25rem; border: 1px solid color-mix(in srgb, var(--danger), transparent 60%); border-radius: 1rem; background: linear-gradient(180deg, #fff8f5, #fff1ec); }
+.danger-zone h2 { margin: 0; color: var(--danger); font-size: 1.1rem; }
+.danger-zone p { margin: .35rem 0 0; line-height: 1.5; }
+.danger-zone form { display: grid; gap: .65rem; }
+.danger-zone .field { margin: 0; }
+.vf-button--danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.vf-button--danger:hover:not(:disabled) { background: color-mix(in srgb, var(--danger), #000 12%); }
+.vf-button--danger:disabled { opacity: .65; cursor: wait; }
 .appearance-preview > div { min-width: 0; overflow: hidden; }
 .appearance-preview .theme-store { width: 100%; }
 @media (min-width: 900px) {
