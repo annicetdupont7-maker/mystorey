@@ -22,7 +22,7 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
   const [isAvailable, setIsAvailable] = useState(product?.isAvailable ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
-  const [image, setImage] = useState<string | null>(product?.imageUrl ?? null);
+  const [images, setImages] = useState<string[]>(product?.imageUrl ? [product.imageUrl] : []);
   const [imageError, setImageError] = useState<string | null>(null);
   const [newImagePicked, setNewImagePicked] = useState(false);
   const [dragging, setDragging] = useState(false);
@@ -38,38 +38,32 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
       onPreviewChange({
         name: name || "Titre du produit",
         price: numericPrice || 0,
-        imageUrl: image,
+        imageUrl: images[0] ?? null,
         description: description || "Description du produit",
         category: categoryId,
         isAvailable,
       });
     }
-  }, [name, price, image, description, categoryId, isAvailable, numericPrice, onPreviewChange]);
+  }, [name, price, images, description, categoryId, isAvailable, numericPrice, onPreviewChange]);
 
-  function handleFile(file: File | null | undefined) {
+  function handleFiles(files: File[]) {
     setImageError(null);
-    if (!file) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setImageError("Format non accepté. Utilisez une image JPG, PNG ou WebP.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      setImageError("Image trop lourde (5 Mo maximum).");
-      return;
-    }
-    setImage(URL.createObjectURL(file));
+    const valid = files.filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024).slice(0, 12);
+    if (valid.length !== files.length) setImageError("Certaines photos ont été ignorées. Utilisez JPG, PNG ou WebP de 5 Mo maximum, 12 photos maximum.");
+    if (!valid.length) return;
+    setImages((current) => [...current.filter((item) => item.startsWith("http")), ...valid.map((file) => URL.createObjectURL(file))].slice(0, 12));
     setNewImagePicked(true);
   }
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (!file || !fileInputRef.current) return;
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (!files.length || !fileInputRef.current) return;
     const dt = new DataTransfer();
-    dt.items.add(file);
+    files.forEach((file) => dt.items.add(file));
     fileInputRef.current.files = dt.files;
-    handleFile(file);
+    handleFiles(files);
   }
 
   return (
@@ -168,22 +162,22 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
           <section className="editor-section" aria-labelledby="editor-section-image">
             <h2 id="editor-section-image">Image du produit</h2>
             <p className="editor-hint">Ajoutez une belle photo de votre produit. JPG, PNG ou WebP.</p>
-            <input ref={fileInputRef} type="file" name="image" accept="image/jpeg,image/png,image/webp" className="visually-hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
-            {!image ? (
+            <input ref={fileInputRef} type="file" name="images" multiple accept="image/jpeg,image/png,image/webp" className="visually-hidden" onChange={(e) => handleFiles(Array.from(e.target.files ?? []))} />
+            {!images.length ? (
               <button type="button" className={`upload-zone${dragging ? " is-dragging" : ""}`} onClick={() => fileInputRef.current?.click()}>
                 <span className="upload-zone-icon"><ImagePlus size={22} aria-hidden="true" /></span>
-                <strong>Ajouter une image</strong>
-                <small>Glissez-déposez votre image ici ou cliquez pour choisir</small>
+                <strong>Ajouter des photos</strong>
+                <small>Choisissez une ou plusieurs photos. JPG, PNG ou WebP, 5 Mo maximum par photo.</small>
               </button>
             ) : (
               <div className="upload-preview">
-                <img src={image} alt="Aperçu du produit" />
+                <div className="upload-gallery-grid">{images.map((item, index) => <div className="upload-gallery-item" key={`${item}-${index}`}><img src={item} alt={`Photo ${index + 1} du produit`} /><button type="button" className="upload-gallery-remove" onClick={() => setImages((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Supprimer la photo ${index + 1}`}><Trash2 size={14} aria-hidden="true" /></button></div>)}</div>
                 <div className="upload-preview-actions">
                   {newImagePicked ? (
-                    <button type="button" className="upload-remove" onClick={() => { setImage(product?.imageUrl ?? null); setNewImagePicked(false); }} aria-label="Supprimer l’image"><Trash2 size={15} aria-hidden="true" /> Supprimer</button>
+                    <button type="button" className="upload-remove" onClick={() => { setImages(product?.imageUrl ? [product.imageUrl] : []); setNewImagePicked(false); if (fileInputRef.current) fileInputRef.current.value = ""; }} aria-label="Réinitialiser les photos"><Trash2 size={15} aria-hidden="true" /> Réinitialiser</button>
                   ) : null}
                   <button type="button" className="upload-replace" onClick={() => fileInputRef.current?.click()}>
-                    <Upload size={15} aria-hidden="true" /> Remplacer
+                    <Upload size={15} aria-hidden="true" /> Ajouter des photos
                   </button>
                 </div>
               </div>
@@ -198,7 +192,7 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
           <p className="editor-preview-label"><Sparkles size={13} aria-hidden="true" /> Aperçu</p>
           <div className="preview-card">
             <div className="preview-media">
-              {image ? <img src={image} alt="" /> : <span className="preview-placeholder"><ImagePlus size={28} aria-hidden="true" /></span>}
+              {images[0] ? <img src={images[0]} alt="" /> : <span className="preview-placeholder"><ImagePlus size={28} aria-hidden="true" /></span>}
               {isFeatured && <span className="preview-badge"><Star size={11} aria-hidden="true" /> À la une</span>}
             </div>
             <div className="preview-details">

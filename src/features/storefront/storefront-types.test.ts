@@ -7,7 +7,7 @@ describe("formatPrice", () => {
 describe("toProductView", () => {
   it("mappe une ligne produit vers la vue vitrine", () => {
     const row = { id: "p1", name: "Sac Studio", note: "Disponible", price: 19500, image_url: "https://x/y.webp" };
-    expect(toProductView(row)).toEqual({ id: "p1", name: "Sac Studio", price: `19\u202F500 FCFA`, note: "Disponible", image: "https://x/y.webp", unitPrice: 19500, featured: false, available: true, categoryId: null });
+    expect(toProductView(row)).toEqual({ id: "p1", name: "Sac Studio", price: `19\u202F500 FCFA`, note: "Disponible", description: "", image: "https://x/y.webp", images: ["https://x/y.webp"], unitPrice: 19500, featured: false, available: true, categoryId: null });
   });
   it("gère une note et une image absentes", () => {
     const row = { id: "p1", name: "Sac Studio", note: null, price: 19500, image_url: null };

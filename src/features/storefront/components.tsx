@@ -332,7 +332,9 @@ export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }
             <span className="vf-eyebrow" style={{ color: "var(--store-accent)" }}>Le produit</span>
             <h1 className="store-product-name">{product.name}</h1>
             {product.note && <p className="store-product-note">{product.note}</p>}
+            {product.images.length > 1 && <div className="store-product-gallery" aria-label="Photos du produit">{product.images.map((image, index) => <img key={image} src={image} alt={`${product.name} photo ${index + 1}`} className="store-product-thumb" />)}</div>}
             <p className="store-product-price">{product.price}</p>
+            {product.description && <p className="store-product-note">{product.description}</p>}
             {available ? (
               <div className="store-product-actions">
                 <AddToCartButton onAdd={() => addItem(product)} />
