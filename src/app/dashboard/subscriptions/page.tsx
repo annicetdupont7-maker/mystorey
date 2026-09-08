@@ -2,7 +2,6 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
-import { initiateKkiapayPayment } from "@/features/subscriptions/kkiapay-actions";
 import { getSellerSubscriptionStatus } from "@/features/subscriptions/data";
 import { subscriptionPlans } from "@/features/subscriptions/types";
 import { getProducts } from "@/features/products/data";
@@ -25,7 +24,7 @@ export default async function SubscriptionsPage() {
         <div>
           <p className="vf-eyebrow">Abonnement</p>
           <h1>Choisissez votre plan.</h1>
-             <p className="muted">Activez le plan MYSTOREY adapté à votre activité et profitez d’un accès fluide à votre boutique.</p>
+           <p className="muted">La V1 de test inclut le plan gratuit. Les plans payants seront disponibles prochainement.</p>
         </div>
       </section>
 
@@ -57,12 +56,13 @@ export default async function SubscriptionsPage() {
                 <li>Support prioritaire</li>
               </ul>
 
-              <form action={initiateKkiapayPayment}>
-                <input type="hidden" name="planId" value={plan.id} />
-                <button type="submit" className={`vf-button${isCurrent ? " vf-button--ghost" : ""}`} disabled={isCurrent}>
-                  {isCurrent ? "Plan actif" : "Choisir ce plan"}
-                </button>
-              </form>
+              {plan.id === "free" && isCurrent ? (
+                <button type="button" className="vf-button vf-button--ghost" disabled>Plan gratuit actif</button>
+              ) : plan.id === "free" ? (
+                <button type="button" className="vf-button vf-button--ghost" disabled>Plan gratuit disponible</button>
+              ) : (
+                <button type="button" className="vf-button vf-button--ghost" disabled>Disponible prochainement</button>
+              )}
             </article>
           );
         })}
