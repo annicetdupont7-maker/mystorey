@@ -7,6 +7,12 @@ export function buildOrderMessage(items: CartItem[], storeName: string): string 
   const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   return `Bonjour ${storeName} 👋\n\nJe souhaite commander :\n${rows}\n\nTotal : ${formatPrice(total)}\n\nMerci ! (via MYSTOREY)`;
 }
+export function buildWhatsAppOrderDraft(items: CartItem[], storeName: string): string {
+  if (items.length === 0) return "";
+  const rows = items.map((item) => `- ${item.name} × ${item.quantity} : ${formatPrice(item.unitPrice * item.quantity)}`).join("\n");
+  const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  return `Bonjour, je souhaite commander auprès de ${storeName}.\n\nMa commande :\n${rows}\n\nTotal estimé : ${formatPrice(total)}\n\nNom :\nTéléphone :\nAdresse ou lieu de livraison :\nInformations complémentaires :`;
+}
 export function buildWhatsAppLink(whatsapp: string, message: string): string | null {
   const digits = normalizeWhatsAppNumber(whatsapp);
   if (!digits) return null;

@@ -1,10 +1,10 @@
 "use client";
 /* Demo catalogue images are remote, dynamic URLs; product media lives in Supabase Storage (Mission 3). */
 /* eslint-disable @next/next/no-img-element */
-import { Check, MessageCircle, Minus, Plus, ShoppingBag, Star, X } from "lucide-react";
+import { Check, MessageCircle, Minus, Plus, ShoppingBag, Star, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useActionState } from "react";
 import type { ThemeTokens } from "@/features/themes/theme-schema";
-import { buildWhatsAppLink, type CartItem } from "./whatsapp";
+import { buildWhatsAppLink, buildWhatsAppOrderDraft, type CartItem } from "./whatsapp";
 import { createCheckoutOrder, type CheckoutActionState } from "@/features/orders/checkout-actions";
 import { categoriesWithProducts, filterProductsByCategory, type CategoryRef } from "@/features/categories/filter";
 import { formatPrice, type ProductView } from "./storefront-types";
@@ -144,10 +144,10 @@ export function AddToCartButton({ onAdd }: { onAdd: () => void }) {
   return <button className={`store-button${added ? " is-added" : ""}`} onClick={handle}>{added ? <><Check size={15} aria-hidden="true" /> Ajouté</> : <><ShoppingBag size={16} aria-hidden="true" /> Ajouter</>}</button>;
 }
 
-export function WhatsAppOrderButton({ items, whatsapp }: { items: CartItem[]; whatsapp: string }) {
-  const link = buildWhatsAppLink(whatsapp, items.map((i) => `• ${i.name} : ${i.quantity} × ${formatPrice(i.unitPrice)}`).join("\n"));
+export function WhatsAppOrderButton({ items, whatsapp, storeName, label = "Commander par WhatsApp" }: { items: CartItem[]; whatsapp: string; storeName: string; label?: string }) {
+  const link = buildWhatsAppLink(whatsapp, buildWhatsAppOrderDraft(items, storeName));
   if (!link) return null;
-  return <a className="store-button store-button--secondary" href={link} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} aria-hidden="true" /> Commander</a>;
+  return <a className="store-button store-button--secondary" href={link} target="_blank" rel="noopener noreferrer"><MessageCircle size={16} aria-hidden="true" /> {label}</a>;
 }
 
 export function ProductImage({ product }: { product: ProductView }) {
@@ -249,7 +249,7 @@ function CheckoutForm({ items, storeSlug, onBack }: { items: CartItem[]; storeSl
   );
 }
 
-export function CartDrawer({ items, onClose, onChangeQty, whatsapp, storeSlug, disableCheckout }: { items: CartItem[]; onClose: () => void; onChangeQty: (id: string, delta: number) => void; whatsapp?: string; storeSlug?: string; disableCheckout?: boolean }) {
+export function CartDrawer({ items, onClose, onChangeQty, onClear, whatsapp, storeName = "la boutique", storeSlug, disableCheckout }: { items: CartItem[]; onClose: () => void; onChangeQty: (id: string, delta: number) => void; onClear: () => void; whatsapp?: string; storeName?: string; storeSlug?: string; disableCheckout?: boolean }) {
   const [step, setStep] = useState<"cart" | "checkout">("cart");
   const itemCount = items.reduce((s, i) => s + i.quantity, 0);
   const subtotal = items.reduce((s, i) => s + i.unitPrice * i.quantity, 0);
@@ -261,10 +261,11 @@ export function CartDrawer({ items, onClose, onChangeQty, whatsapp, storeSlug, d
             <strong>Votre panier · {itemCount} {itemCount > 1 ? "articles" : "article"}</strong>
             <button className="cart-close" aria-label="Fermer le panier" onClick={onClose}><X size={18} /></button>
           </div>
+          {items.length === 0 ? <div className="cart-empty"><ShoppingBag size={24} aria-hidden="true" /><p>Votre panier est vide.</p><button type="button" className="text-button checkout-back" onClick={onClose}>Continuer les achats</button></div> : <>
           <ul className="cart-lines">
             {items.map((item) => (
               <li className="cart-line" key={item.id}>
-                <div className="cart-line-info"><span>{item.name}</span><small>{formatPrice(item.unitPrice)}</small></div>
+                <div className="cart-line-info"><span>{item.name}</span><small>{formatPrice(item.unitPrice)} l&apos;unité</small></div>
                 <div className="cart-qty">
                   <button type="button" aria-label={`Diminuer ${item.name}`} onClick={() => onChangeQty(item.id, -1)}><Minus size={14} /></button>
                   <span>{item.quantity}</span>
@@ -274,14 +275,16 @@ export function CartDrawer({ items, onClose, onChangeQty, whatsapp, storeSlug, d
               </li>
             ))}
           </ul>
-          <div className="cart-row"><span>Total</span><strong>{formatPrice(subtotal)}</strong></div>
+          <div className="cart-row"><span>Total estimé</span><strong>{formatPrice(subtotal)}</strong></div>
+          <button type="button" className="cart-clear text-button text-button--danger" onClick={onClear}><Trash2 size={14} aria-hidden="true" /> Vider le panier</button>
           {disableCheckout ? (
             <p className="cart-note">Aperçu administrateur — lecture seule. La commande est désactivée dans ce mode.</p>
           ) : whatsapp ? (
             storeSlug
-              ? <div className="checkout-actions"><button type="button" className="store-button checkout-cta" onClick={() => setStep("checkout")}><ShoppingBag size={16} aria-hidden="true" /> Commander</button></div>
-              : <div style={{ marginTop: ".85rem" }}><WhatsAppOrderButton items={items} whatsapp={whatsapp} /></div>
-          ) : <p className="cart-note">Cette boutique ne reçoit pas encore de commandes WhatsApp.</p>}
+              ? <div className="cart-command-actions"><WhatsAppOrderButton items={items} whatsapp={whatsapp} storeName={storeName} /><button type="button" className="store-button checkout-cta" onClick={() => setStep("checkout")}><ShoppingBag size={16} aria-hidden="true" /> Envoyer la commande</button></div>
+              : <div style={{ marginTop: ".85rem" }}><WhatsAppOrderButton items={items} whatsapp={whatsapp} storeName={storeName} /></div>
+          ) : <p className="cart-note">La vendeuse doit renseigner son numéro WhatsApp avant de recevoir des commandes.</p>}
+          </>}
         </>
       ) : (
         <>
@@ -341,7 +344,7 @@ export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }
           </div>
         </div>
       </main>
-      {available && cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} whatsapp={whatsapp} storeSlug={slug} />}
+      {available && cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={() => setItems([])} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} />}
       {available && (
         <button
           className={`cart-bubble${itemCount > 0 ? " is-visible" : ""}`}
@@ -393,7 +396,7 @@ export function Storefront({ tokens, products, storeName, slogan, description, w
         </section>
       )}
       <ProductGrid products={visible} tokens={tokens} onAdd={addItem} id={chips.length > 0 ? undefined : "catalogue"} />
-      {cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} whatsapp={whatsapp} storeSlug={slug} disableCheckout={disableCheckout} />}
+      {cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={() => setItems([])} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} disableCheckout={disableCheckout} />}
       <button
         className={`cart-bubble${itemCount > 0 ? " is-visible" : ""}`}
         aria-label={`Ouvrir le panier (${itemCount} article${itemCount > 1 ? "s" : ""})`}

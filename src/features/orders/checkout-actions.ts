@@ -44,7 +44,8 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
     if (!store || !store.whatsapp) return { error: "Cette boutique ne reçoit pas encore de commandes en ligne." };
 
     const productIds = [...new Set(parsed.data.lines.map((line) => line.productId))];
-    const { data: productRows } = await supabase.from("products").select("id").in("id", productIds);
+    const { data: productRows, error: productsError } = await supabase.from("products").select("id,store_id,is_available").eq("store_id", store.id).in("id", productIds);
+    if (productsError) return { error: "Impossible de vérifier les produits de votre panier." };
     const known = new Set((productRows ?? []).map((row) => row.id));
     if (!productIds.every((id) => known.has(id))) return { error: "Un article de votre panier n’est plus disponible." };
 

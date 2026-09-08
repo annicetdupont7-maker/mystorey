@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildOrderMessage, buildWhatsAppLink, normalizeWhatsAppNumber } from "./whatsapp";
+import { buildOrderMessage, buildWhatsAppLink, buildWhatsAppOrderDraft, normalizeWhatsAppNumber } from "./whatsapp";
 describe("normalizeWhatsAppNumber", () => {
   it("ne garde que les chiffres", () => { expect(normalizeWhatsAppNumber("+237 6 90 00 00 00")).toBe("237690000000"); });
   it("retourne une chaîne vide sans chiffres", () => { expect(normalizeWhatsAppNumber("(aucun)")).toBe(""); });
@@ -18,4 +18,14 @@ describe("buildWhatsAppLink", () => {
     expect(decodeURIComponent(url)).toContain("Total : 67\u202F000 FCFA");
   });
   it("retourne null si aucun numéro", () => { expect(buildWhatsAppLink("  ", "commande")).toBeNull(); });
+});
+describe("buildWhatsAppOrderDraft", () => {
+  it("inclut la boutique, les quantités, le total et les champs client", () => {
+    const draft = buildWhatsAppOrderDraft([{ id: "1", name: "Sac Studio", unitPrice: 19500, quantity: 2 }], "Amina Fashion");
+    expect(draft).toContain("auprès de Amina Fashion");
+    expect(draft).toContain("Sac Studio × 2 : 39");
+    expect(draft).toContain("Total estimé");
+    expect(draft).toContain("Nom :");
+    expect(draft).toContain("Adresse ou lieu de livraison :");
+  });
 });
