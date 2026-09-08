@@ -30,7 +30,7 @@ create table if not exists public.subscription_plans (
 insert into public.subscription_plans (id, name, price, product_limit, description)
 values
   ('free', 'Decouverte', 0, 10, 'Pour lancer votre boutique avec vos premiers produits.'),
-  ('growth', 'Plus', 2000, 2000, 'Pour commencer a vendre regulierement avec plus de liberte.'),
+  ('growth', 'Plus', 2000, 20, 'Pour commencer a vendre regulierement avec plus de liberte.'),
   ('pro', 'Pro', 5000, 100, 'Pour les boutiques qui developpent une activite reguliere.')
 on conflict (id) do nothing;
 

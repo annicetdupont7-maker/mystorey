@@ -5,7 +5,7 @@ set product_limit = 10,
 where id = 'free';
 
 update public.subscription_plans
-set product_limit = 2000,
+set product_limit = 20,
     name = 'Plus'
 where id = 'growth';
 
