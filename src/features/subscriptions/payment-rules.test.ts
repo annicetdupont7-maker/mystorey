@@ -7,6 +7,7 @@ describe("subscription launch rules", () => {
     expect(getPlanById("free").productLimit).toBe(10);
     expect(getPlanById("growth").productLimit).toBe(20);
     expect(getPlanById("pro").productLimit).toBe(100);
+    expect(getPlanById("pro").price).toBe(2500);
     expect(canAddProduct(9, "free")).toBe(true);
     expect(canAddProduct(10, "free")).toBe(false);
     expect(canAddProduct(20, "growth")).toBe(false);

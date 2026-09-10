@@ -65,9 +65,9 @@ export async function updateOrderStatus(formData: FormData): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
   try {
-    const { data: order } = await supabase.from("orders").select("status").eq("id", id).maybeSingle();
+    const { data: order } = await supabase.from("orders").select("status").eq("id", id).eq("store_id", (await supabase.from("stores").select("id").eq("owner_id", user.id).limit(1).maybeSingle()).data?.id ?? "").maybeSingle();
     if (!order || !isValidTransition(order.status as OrderStatus, raw)) return;
-    await supabase.from("orders").update({ status: raw }).eq("id", id);
+    await supabase.from("orders").update({ status: raw }).eq("id", id).eq("store_id", (await supabase.from("stores").select("id").eq("owner_id", user.id).limit(1).maybeSingle()).data?.id ?? "");
     revalidatePath("/dashboard/orders");
   } catch {
     return;
@@ -79,6 +79,7 @@ export async function deleteOrder(formData: FormData): Promise<void> {
   const supabase = await createSupabaseServerClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login");
-  await supabase.from("orders").delete().eq("id", id);
+  const { data: store } = await supabase.from("stores").select("id").eq("owner_id", user.id).limit(1).maybeSingle();
+  if (store) await supabase.from("orders").delete().eq("id", id).eq("store_id", store.id);
   revalidatePath("/dashboard/orders");
 }

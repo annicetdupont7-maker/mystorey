@@ -60,6 +60,10 @@ export async function initiateWavePayment(formData: FormData): Promise<void> {
     throw new Error("Impossible de créer la session de paiement.");
   }
 
+  if (!paymentIntent.checkout_url) {
+    throw new Error("Wave n'a pas fourni de lien de paiement.");
+  }
+
   // Redirect to Wave checkout
   redirect(paymentIntent.checkout_url);
 }

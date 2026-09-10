@@ -31,7 +31,7 @@ insert into public.subscription_plans (id, name, price, product_limit, descripti
 values
   ('free', 'Decouverte', 0, 10, 'Pour lancer votre boutique avec vos premiers produits.'),
   ('growth', 'Plus', 2000, 20, 'Pour commencer a vendre regulierement avec plus de liberte.'),
-  ('pro', 'Pro', 5000, 100, 'Pour les boutiques qui developpent une activite reguliere.')
+  ('pro', 'Pro', 2500, 100, 'Pour gerer une boutique avec davantage de produits, categories et commandes WhatsApp.')
 on conflict (id) do nothing;
 
 create table if not exists public.seller_subscriptions (

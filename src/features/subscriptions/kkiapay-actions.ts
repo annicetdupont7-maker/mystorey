@@ -56,5 +56,9 @@ export async function initiateKkiapayPayment(formData: FormData): Promise<void> 
     throw new Error("Impossible de créer la session de paiement.");
   }
 
-  redirect(paymentIntent.checkout_url || "/dashboard/subscriptions");
+  if (!paymentIntent.checkout_url) {
+    throw new Error("Kkiapay n'a pas fourni de lien de paiement.");
+  }
+
+  redirect(paymentIntent.checkout_url);
 }

@@ -2,8 +2,16 @@ import { createSupabaseServiceClient } from "@/lib/supabase/admin";
 import { getWaveClient, type WaveWebhookPayload } from "@/lib/wave/client";
 import { NextRequest, NextResponse } from "next/server";
 import { paymentAmountMatches } from "@/features/subscriptions/payment-rules";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+const waveWebhookSchema = z.object({
+  type: z.enum(["payment.completed", "payment.failed"]),
+  payment_id: z.string().min(1),
+  amount: z.number().finite(),
+  status: z.string(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,12 +27,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payload: WaveWebhookPayload = JSON.parse(body);
-    const supabase = createSupabaseServiceClient();
-
-    if (!payload.payment_id || !["payment.completed", "payment.failed"].includes(payload.type) || typeof payload.amount !== "number") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(body);
+    } catch {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
+
+    const parsedPayload = waveWebhookSchema.safeParse(parsedBody);
+    if (!parsedPayload.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    const payload: WaveWebhookPayload = parsedPayload.data;
+    const supabase = createSupabaseServiceClient();
 
     // Find the payment record
     const { data: payment } = await supabase
@@ -41,17 +54,7 @@ export async function POST(req: NextRequest) {
     if (payload.type === "payment.completed" && payment.status === "completed") return NextResponse.json({ success: true, duplicate: true });
     if (!paymentAmountMatches(payment.amount, payload.amount)) return NextResponse.json({ error: "Amount mismatch" }, { status: 400 });
 
-    // Update payment status
     if (payload.type === "payment.completed") {
-      const { error: paymentError } = await supabase
-        .from("wave_payments")
-        .update({
-          status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", payment.id);
-      if (paymentError) return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
-
       // Activate subscription
       const { error } = await supabase
         .from("seller_subscriptions")
@@ -74,6 +77,15 @@ export async function POST(req: NextRequest) {
         console.error("[Wave Webhook] Failed to activate subscription:", error);
         return NextResponse.json({ error: "Failed to activate subscription" }, { status: 500 });
       }
+
+      const { error: paymentError } = await supabase
+        .from("wave_payments")
+        .update({
+          status: "completed",
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", payment.id);
+      if (paymentError) return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
 
       console.log(`[Wave Webhook] Payment completed: ${payload.payment_id}, subscription activated for store: ${payment.store_id}`);
     } else if (payload.type === "payment.failed") {

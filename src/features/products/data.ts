@@ -1,5 +1,5 @@
 import { getMyFirstStore } from "@/features/stores/data";
-export type ProductMedia = { id: string; public_url: string; position: number };
+export type ProductMedia = { id: string; public_url: string; storage_path?: string; position: number };
 export type ProductWithFlags = { id: string; name: string; note: string | null; description: string | null; price: number; image_url: string | null; is_available: boolean; is_featured: boolean; category_id: string | null; created_at: string; media?: ProductMedia[] };
 export async function getProducts() {
   const { store, user, supabase } = await getMyFirstStore();
@@ -17,6 +17,6 @@ export async function getSingleProduct(id: string) {
   if (!result.store) return { ...result, product: null };
   const { data, error } = await result.supabase.from("products").select("id,name,note,description,price,image_url,is_available,is_featured,category_id").eq("id", id).eq("store_id", result.store.id).maybeSingle();
   if (error) throw new Error("Impossible de charger le produit.");
-  const { data: media } = await result.supabase.from("product_media").select("id,public_url,position").eq("product_id", id).order("position");
+  const { data: media } = await result.supabase.from("product_media").select("id,public_url,storage_path,position").eq("product_id", id).order("position");
   return { ...result, product: data ? { ...data, product_media: media ?? [] } : data };
 }

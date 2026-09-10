@@ -6,7 +6,7 @@ import type { ProductPreview } from "./product-form";
 import { formatPrice } from "@/features/storefront/storefront-types";
 
 type CategoryRef = { id: string; name: string };
-type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; isAvailable: boolean; isFeatured: boolean; categoryId: string | null };
+type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; media?: { url: string; path?: string }[]; isAvailable: boolean; isFeatured: boolean; categoryId: string | null };
 
 export function ProductFormWithPreview({ storeId, categories, initialProduct }: { storeId: string; categories: CategoryRef[]; initialProduct?: ProductFormData }) {
   const [preview, setPreview] = useState<ProductPreview>({

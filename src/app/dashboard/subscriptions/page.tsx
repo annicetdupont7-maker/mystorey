@@ -24,7 +24,7 @@ export default async function SubscriptionsPage() {
         <div>
           <p className="vf-eyebrow">Abonnement</p>
           <h1>Choisissez votre plan.</h1>
-           <p className="muted">La V1 de test inclut le plan gratuit. Les plans payants seront disponibles prochainement.</p>
+          <p className="muted">Choisissez le plan adapté à la taille de votre catalogue.</p>
         </div>
       </section>
 
@@ -37,7 +37,7 @@ export default async function SubscriptionsPage() {
       </div>
 
       <div className="subscription-grid">
-        {subscriptionPlans.map((plan) => {
+        {subscriptionPlans.filter((plan) => plan.id !== "growth").map((plan) => {
           const isCurrent = subscriptionStatus.plan.id === plan.id;
           return (
             <article key={plan.id} className={`subscription-card${isCurrent ? " is-current" : ""}`}>
@@ -52,8 +52,8 @@ export default async function SubscriptionsPage() {
               <ul className="subscription-list">
                 <li>{plan.productLimit ? `Jusqu’à ${plan.productLimit} produits` : "Produits illimités"}</li>
                 <li>Gestion de votre boutique</li>
+                <li>Gestion de vos produits et catégories</li>
                 <li>Commandes WhatsApp</li>
-                <li>Support prioritaire</li>
               </ul>
 
               {plan.id === "free" && isCurrent ? (

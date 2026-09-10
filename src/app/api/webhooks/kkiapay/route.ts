@@ -2,8 +2,16 @@ import { createSupabaseServiceClient } from "@/lib/supabase/admin";
 import { getKkiapayClient } from "@/lib/kkiapay/client";
 import { NextRequest, NextResponse } from "next/server";
 import { paymentAmountMatches } from "@/features/subscriptions/payment-rules";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
+
+const kkiapayWebhookSchema = z.object({
+  event: z.enum(["payment.success", "payment.failed", "payment.cancelled"]),
+  payment_id: z.string().min(1),
+  amount: z.number().finite(),
+  status: z.string().optional(),
+});
 
 export async function POST(req: NextRequest) {
   try {
@@ -18,18 +26,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    const payload = JSON.parse(body) as {
-      event?: string;
-      payment_id?: string;
-      amount?: number;
-      status?: string;
-      data?: Record<string, unknown>;
-      metadata?: Record<string, unknown>;
-    };
-
-    if (!payload.payment_id || !payload.event || typeof payload.amount !== "number") {
+    let parsedBody: unknown;
+    try {
+      parsedBody = JSON.parse(body);
+    } catch {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
     }
+
+    const parsedPayload = kkiapayWebhookSchema.safeParse(parsedBody);
+    if (!parsedPayload.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    const payload = parsedPayload.data;
 
     const supabase = createSupabaseServiceClient();
 
@@ -53,15 +59,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (payload.event === "payment.success") {
-      const { error: paymentError } = await supabase
-        .from("fedapay_payments")
-        .update({ status: "approved", updated_at: new Date().toISOString(), metadata: { ...(payment.metadata ?? {}), provider: "kkiapay", webhook_status: payload.status ?? "success" } })
-        .eq("id", payment.id);
-
-      if (paymentError) {
-        return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
-      }
-
       const { error } = await supabase
         .from("seller_subscriptions")
         .upsert(
@@ -83,6 +80,12 @@ export async function POST(req: NextRequest) {
         console.error("[Kkiapay Webhook] Failed to activate subscription:", error);
         return NextResponse.json({ error: "Failed to activate subscription" }, { status: 500 });
       }
+
+      const { error: paymentError } = await supabase
+        .from("fedapay_payments")
+        .update({ status: "approved", updated_at: new Date().toISOString(), metadata: { ...(payment.metadata ?? {}), provider: "kkiapay", webhook_status: payload.status ?? "success" } })
+        .eq("id", payment.id);
+      if (paymentError) return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
 
       return NextResponse.json({ success: true });
     }

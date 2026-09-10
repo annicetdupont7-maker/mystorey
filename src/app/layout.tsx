@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   icons: {
     icon: [{ url: "/favicon.png?v=2", type: "image/png", sizes: "520x520" }],
     shortcut: [{ url: "/favicon.png?v=2", type: "image/png", sizes: "520x520" }],
-    apple: "/logo.png",
+    apple: "/images/logo.png",
   },
   keywords: [
     "boutique en ligne",
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     siteName: "MYSTOREY",
     locale: "fr_FR",
     type: "website",
-    images: [{ url: "/logo.png", width: 1262, height: 1262, alt: "Logo MYSTOREY" }],
+    images: [{ url: "/images/logo.png", width: 1262, height: 1262, alt: "Logo MYSTOREY" }],
   },
   twitter: {
     card: "summary_large_image",

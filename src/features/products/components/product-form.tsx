@@ -7,7 +7,7 @@ import { createProduct, updateProduct } from "../actions";
 import type { ProductActionState } from "../schemas";
 import { formatPrice } from "@/features/storefront/storefront-types";
 
-export type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; isAvailable: boolean; isFeatured: boolean; categoryId: string | null };
+export type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; media?: { url: string; path?: string }[]; isAvailable: boolean; isFeatured: boolean; categoryId: string | null };
 export type CategoryOption = { id: string; name: string };
 export type ProductPreview = { name: string; price: number; imageUrl: string | null; description: string; category: string; isAvailable: boolean };
 
@@ -22,11 +22,22 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
   const [isAvailable, setIsAvailable] = useState(product?.isAvailable ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
-  const [images, setImages] = useState<string[]>(product?.imageUrl ? [product.imageUrl] : []);
+  const [images, setImages] = useState<string[]>(product?.media?.length ? product.media.map((item) => item.url) : product?.imageUrl ? [product.imageUrl] : []);
+  const [removedImagePaths, setRemovedImagePaths] = useState<string[]>([]);
+  const [removedLegacyImage, setRemovedLegacyImage] = useState(false);
+  const [, setSelectedFiles] = useState<File[]>([]);
+  const selectedFilesRef = useRef<File[]>([]);
   const [imageError, setImageError] = useState<string | null>(null);
   const [newImagePicked, setNewImagePicked] = useState(false);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  function syncFileInput(files: File[]) {
+    if (!fileInputRef.current) return;
+    const dataTransfer = new DataTransfer();
+    files.forEach((file) => dataTransfer.items.add(file));
+    fileInputRef.current.files = dataTransfer.files;
+  }
 
   const selectedCategoryName = categories.find((c) => c.id === categoryId)?.name ?? null;
   const numericPrice = price && /^\d+$/.test(price.trim()) ? Number(price.trim()) : null;
@@ -48,9 +59,14 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
 
   function handleFiles(files: File[]) {
     setImageError(null);
-    const valid = files.filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024).slice(0, 12);
+    const validFiles = files.filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024);
+    const valid = validFiles.slice(0, Math.max(0, 12 - images.length));
     if (valid.length !== files.length) setImageError("Certaines photos ont été ignorées. Utilisez JPG, PNG ou WebP de 5 Mo maximum, 12 photos maximum.");
     if (!valid.length) return;
+    const nextFiles = [...selectedFilesRef.current, ...valid].slice(0, 12);
+    selectedFilesRef.current = nextFiles;
+    syncFileInput(nextFiles);
+    setSelectedFiles(nextFiles);
     setImages((current) => [...current.filter((item) => item.startsWith("http")), ...valid.map((file) => URL.createObjectURL(file))].slice(0, 12));
     setNewImagePicked(true);
   }
@@ -60,15 +76,14 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
     setDragging(false);
     const files = Array.from(e.dataTransfer.files ?? []);
     if (!files.length || !fileInputRef.current) return;
-    const dt = new DataTransfer();
-    files.forEach((file) => dt.items.add(file));
-    fileInputRef.current.files = dt.files;
     handleFiles(files);
   }
 
   return (
     <form className="product-editor" action={action} onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop}>
       <input type="hidden" name="storeId" value={storeId} />
+      <input type="hidden" name="removedImagePaths" value={JSON.stringify(removedImagePaths)} />
+      <input type="hidden" name="removeLegacyImage" value={removedLegacyImage ? "true" : "false"} />
       {isEdit && <input type="hidden" name="productId" value={product.id} />}
 
       <div className="product-editor-bar">
@@ -171,10 +186,19 @@ export function ProductForm({ storeId, product, categories = [], onPreviewChange
               </button>
             ) : (
               <div className="upload-preview">
-                <div className="upload-gallery-grid">{images.map((item, index) => <div className="upload-gallery-item" key={`${item}-${index}`}><img src={item} alt={`Photo ${index + 1} du produit`} /><button type="button" className="upload-gallery-remove" onClick={() => setImages((current) => current.filter((_, itemIndex) => itemIndex !== index))} aria-label={`Supprimer la photo ${index + 1}`}><Trash2 size={14} aria-hidden="true" /></button></div>)}</div>
+                <div className="upload-gallery-grid">{images.map((item, index) => <div className="upload-gallery-item" key={`${item}-${index}`}><img src={item} alt={`Photo ${index + 1} du produit`} /><button type="button" className="upload-gallery-remove" onClick={() => {
+                  const fileIndex = item.startsWith("http") ? -1 : images.slice(0, index).filter((image) => !image.startsWith("http")).length;
+                  if (item.startsWith("http") && product?.media?.[index]?.path) setRemovedImagePaths((current) => [...current, product.media?.[index]?.path ?? ""].filter(Boolean));
+                  if (item === product?.imageUrl && !product?.media?.length) setRemovedLegacyImage(true);
+                  setImages((current) => current.filter((_, itemIndex) => itemIndex !== index));
+                  const nextFiles = fileIndex < 0 ? selectedFilesRef.current : selectedFilesRef.current.filter((_, itemIndex) => itemIndex !== fileIndex);
+                  selectedFilesRef.current = nextFiles;
+                  syncFileInput(nextFiles);
+                  setSelectedFiles(nextFiles);
+                }} aria-label={`Supprimer la photo ${index + 1}`}><Trash2 size={14} aria-hidden="true" /></button></div>)}</div>
                 <div className="upload-preview-actions">
                   {newImagePicked ? (
-                    <button type="button" className="upload-remove" onClick={() => { setImages(product?.imageUrl ? [product.imageUrl] : []); setNewImagePicked(false); if (fileInputRef.current) fileInputRef.current.value = ""; }} aria-label="Réinitialiser les photos"><Trash2 size={15} aria-hidden="true" /> Réinitialiser</button>
+                    <button type="button" className="upload-remove" onClick={() => { setImages(product?.media?.length ? product.media.map((item) => item.url) : product?.imageUrl ? [product.imageUrl] : []); setRemovedImagePaths([]); setRemovedLegacyImage(false); selectedFilesRef.current = []; setSelectedFiles([]); setNewImagePicked(false); if (fileInputRef.current) fileInputRef.current.value = ""; }} aria-label="Réinitialiser les photos"><Trash2 size={15} aria-hidden="true" /> Réinitialiser</button>
                   ) : null}
                   <button type="button" className="upload-replace" onClick={() => fileInputRef.current?.click()}>
                     <Upload size={15} aria-hidden="true" /> Ajouter des photos

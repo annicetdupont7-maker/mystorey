@@ -32,9 +32,9 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: "pro",
     name: "Pro",
-    price: 5000,
-    priceLabel: "5 000 FCFA / mois",
-    description: "Pour les boutiques qui veulent aller plus loin et gérer davantage.",
+    price: 2500,
+    priceLabel: "2 500 FCFA / mois",
+    description: "Pour les boutiques qui veulent gérer davantage de produits.",
     productLimit: 100,
     badge: "Premium",
   },

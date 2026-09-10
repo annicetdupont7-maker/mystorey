@@ -68,7 +68,7 @@ export default function HomePage() {
 
           <div className="hero-right">
             <Image 
-              src="/images/landing-hero.png" 
+              src="/images/landing-hero.webp"
               alt="MYSTOREY Dashboard"
               width={600}
               height={500}
@@ -108,7 +108,7 @@ export default function HomePage() {
 
           <div className="stats-right">
             <Image 
-              src="/images/landing-hero.png" 
+              src="/images/landing-hero.webp"
               alt="Femme avec téléphone" 
               width={500}
               height={500}

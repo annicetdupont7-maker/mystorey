@@ -77,9 +77,9 @@
   img, svg, video, canvas { max-width: 100%; }
   button, input, select, textarea { max-width: 100%; }
   .dashboard-main-inner { min-width: 0; padding: 1.25rem .85rem 2.5rem; }
-  .dashboard-header-copy { min-width: 0; padding-left: 3.2rem; }
+  .dashboard-header-copy { min-width: 0; width: 100%; padding-left: 3.2rem; }
   .dashboard-header-copy h1, .page-head h1, .products-header h1 { overflow-wrap: anywhere; }
-  .dashboard-header-actions, .page-head, .products-header, .statistics-heading { align-items: stretch; flex-direction: column; gap: .8rem; }
+  .dashboard-header-actions, .page-head, .products-header, .statistics-heading { align-items: stretch; flex-direction: column; gap: .8rem; min-width: 0; }
   .page-head > .vf-button, .products-header > .vf-button { width: 100%; }
   .toolbar { align-items: stretch; flex-direction: column; }
   .toolbar-search, .toolbar-select { width: 100%; min-width: 0; }
@@ -4530,8 +4530,51 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
   .admin-panels { grid-template-columns: 1fr; }
   .admin-table { min-width: 30rem; }
 }
+@media (max-width: 640px) {
+  .landing-header {
+    align-items: center;
+    gap: .7rem;
+    padding: .75rem 1rem;
+  }
+  .landing-brand { min-width: 0; }
+  .landing-brand > span:last-child { min-width: 0; }
+  .landing-brand strong { font-size: .92rem; }
+  .landing-brand small { display: block; white-space: nowrap; font-size: .68rem; }
+  .landing-header-actions {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: .45rem;
+    min-width: 0;
+  }
+  .landing-header-actions .text-button,
+  .landing-header-actions .vf-button { min-width: 0; white-space: normal; text-align: center; }
+  .landing-header-actions .text-button { font-size: .78rem; padding: .45rem .25rem; }
+  .landing-header-actions .vf-button { max-width: 9.5rem; }
+  .landing-nav { display: none; }
+  .landing-header .brand-mark { flex: 0 0 auto; }
+}
 @media (max-width: 560px) {
-  .dashboard-header-actions { flex-wrap: wrap; }
+  .dashboard-header-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: .55rem; }
+  .dashboard-header-actions > .icon-button { width: 100%; }
+  .dashboard-header-actions > .dashboard-profile-inline,
+  .dashboard-header-actions > .dashboard-header-store-link,
+  .dashboard-header-actions > .share-wrap,
+  .dashboard-header-actions > form { grid-column: 1 / -1; width: 100%; }
+  .dashboard-header-actions > .dashboard-profile-inline,
+  .dashboard-header-actions > .dashboard-header-store-link,
+  .dashboard-header-actions > .share-wrap > .share-trigger,
+  .dashboard-header-actions > form > .text-button { justify-content: center; width: 100%; }
+  .dashboard-header-actions > .dashboard-profile-inline,
+  .dashboard-header-actions > .dashboard-header-store-link,
+  .dashboard-header-actions > .share-wrap,
+  .dashboard-header-actions > form,
+  .dashboard-header-actions > .share-wrap > .share-trigger,
+  .dashboard-header-actions > form > .text-button { min-width: 0; }
+  .dashboard-header-actions > .dashboard-profile-inline strong,
+  .dashboard-header-actions > .dashboard-header-store-link,
+  .dashboard-header-actions > .share-wrap > .share-trigger,
+  .dashboard-header-actions > form > .text-button { overflow-wrap: anywhere; }
   .dashboard-brand strong { font-size: 1rem; }
   .dashboard-nav { gap: .3rem; padding: .35rem; }
   .nav-item { padding: .55rem .7rem; font-size: .82rem; }

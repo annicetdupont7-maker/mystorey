@@ -60,6 +60,10 @@ export async function initiateFedapayPayment(formData: FormData): Promise<void> 
     throw new Error("Impossible de créer la session de paiement.");
   }
 
+  if (!paymentIntent.checkout_url) {
+    throw new Error("FedaPay n'a pas fourni de lien de paiement.");
+  }
+
   // Redirect to Fedapay checkout
   redirect(paymentIntent.checkout_url);
 }
