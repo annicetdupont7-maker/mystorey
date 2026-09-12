@@ -53,8 +53,8 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
     return (
       <section className="empty-state">
         <span className="empty-state-icon"><PackageOpen size={28} aria-hidden="true" /></span>
-        <h2>Tu n&apos;as encore aucun produit.</h2>
-        <p>Ajoute ton premier article pour commencer à vendre. Une belle photo et un prix clair suffisent pour démarrer.</p>
+        <h2>Votre boutique commence ici.</h2>
+        <p>Ajoutez votre premier produit pour commencer à la construire. Une belle photo et un prix clair suffisent pour démarrer.</p>
         <Link className="vf-button" href="/dashboard/products/new"><ArrowRight size={16} /> Ajouter mon premier produit</Link>
       </section>
     );

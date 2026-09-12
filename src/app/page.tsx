@@ -12,7 +12,7 @@ export default function LandingPage() {
         <div className="vf-nav-inner">
 
           <Link href="/" className="vf-brand">
-            <span className="vf-brand-mark" aria-hidden="true">V</span>
+            <span className="vf-brand-mark" aria-hidden="true">M</span>
             <span className="vf-brand-name">MYSTOREY</span>
           </Link>
 
@@ -359,37 +359,82 @@ export default function LandingPage() {
       <section id="tarifs" className="vf-section vf-section--pricing">
         <div className="vf-container">
           <div className="vf-section-header">
-            <span className="vf-kicker">OFFRE DE LANCEMENT</span>
+            <span className="vf-kicker">TARIFS</span>
             <h2 className="vf-section-title">
-              Votre boutique est à quelques minutes.
+              Commencez gratuitement.<br />Payez seulement si vous grandissez.
             </h2>
             <p className="vf-section-lead">
-              Créez votre espace, ajoutez vos premiers produits et commencez à partager votre boutique.
+              Tout le monde démarre sur le plan gratuit, sans carte bancaire. Vous changez de plan depuis votre tableau de bord uniquement quand votre catalogue devient trop grand.
             </p>
           </div>
 
           <div className="vf-pricing-wrapper">
             <div className="vf-pricing-card">
-              <div className="vf-pricing-tag">OFFRE GRATUITE</div>
-              <h3>Plan de démarrage</h3>
+              <div className="vf-pricing-tag">POUR COMMENCER</div>
+              <h3>Découverte</h3>
               <div className="vf-pricing-amount">
                 <span className="vf-price-val">0 FCFA</span>
+                <span className="vf-price-period">pour toujours</span>
               </div>
-              <p className="vf-pricing-sub">Création de boutique &middot; Sans carte bancaire</p>
+              <p className="vf-pricing-sub">Sans carte bancaire &middot; Sans engagement</p>
 
               <ul className="vf-pricing-list">
+                <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>10 produits</strong></li>
                 <li><span className="vf-check">&#10003;</span> Boutique en ligne personnalisable</li>
                 <li><span className="vf-check">&#10003;</span> Commandes directes sur WhatsApp</li>
-                <li><span className="vf-check">&#10003;</span> 10 produits gratuits</li>
-                <li><span className="vf-check">&#10003;</span> Tableau de bord essentiel</li>
-                <li><span className="vf-check">&#10003;</span> Accès aux plans payants quand votre activité grandit</li>
+                <li><span className="vf-check">&#10003;</span> Catégories et produit à la une</li>
+                <li><span className="vf-check">&#10003;</span> Tableau de bord et suivi des commandes</li>
               </ul>
 
               <Link href="/register" className="vf-btn-primary vf-pricing-btn">
-                Créer ma boutique gratuitement <span>&rarr;</span>
+                Créer ma boutique <span>&rarr;</span>
+              </Link>
+            </div>
+
+            <div className="vf-pricing-card vf-pricing-card--featured">
+              <div className="vf-pricing-tag">BIENTÔT</div>
+              <h3>Plus</h3>
+              <div className="vf-pricing-amount">
+                <span className="vf-price-val">2 000 FCFA</span>
+                <span className="vf-price-period">par mois</span>
+              </div>
+              <p className="vf-pricing-sub">Quand vos 10 produits ne suffisent plus</p>
+
+              <ul className="vf-pricing-list">
+                <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>20 produits</strong></li>
+                <li><span className="vf-check">&#10003;</span> Tout ce que contient Découverte</li>
+                <li><span className="vf-check">&#10003;</span> Mensuel, résiliable à tout moment</li>
+              </ul>
+
+              <Link href="/register" className="vf-btn-secondary vf-pricing-btn">
+                Commencer par le plan gratuit
+              </Link>
+            </div>
+
+            <div className="vf-pricing-card">
+              <div className="vf-pricing-tag">BIENTÔT</div>
+              <h3>Pro</h3>
+              <div className="vf-pricing-amount">
+                <span className="vf-price-val">2 500 FCFA</span>
+                <span className="vf-price-period">par mois</span>
+              </div>
+              <p className="vf-pricing-sub">Pour une boutique bien fournie</p>
+
+              <ul className="vf-pricing-list">
+                <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>100 produits</strong></li>
+                <li><span className="vf-check">&#10003;</span> Tout ce que contient Découverte</li>
+                <li><span className="vf-check">&#10003;</span> Mensuel, résiliable à tout moment</li>
+              </ul>
+
+              <Link href="/register" className="vf-btn-secondary vf-pricing-btn">
+                Commencer par le plan gratuit
               </Link>
             </div>
           </div>
+
+          <p className="vf-pricing-note">
+            Le plan gratuit est disponible dès maintenant. Les plans payants ouvriront prochainement : la seule différence est le nombre de produits que vous pouvez publier — toutes les autres fonctionnalités sont incluses dans le plan gratuit. Vous serez prévenue depuis votre tableau de bord.
+          </p>
         </div>
       </section>
 
@@ -490,7 +535,7 @@ export default function LandingPage() {
 
             <div className="vf-footer-brand">
               <div className="vf-brand">
-                <span className="vf-brand-mark" aria-hidden="true">V</span>
+                <span className="vf-brand-mark" aria-hidden="true">M</span>
                 <span className="vf-brand-name vf-brand-name--light">MYSTOREY</span>
               </div>
               <p>

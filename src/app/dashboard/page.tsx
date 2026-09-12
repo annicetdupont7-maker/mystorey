@@ -148,7 +148,7 @@ export default async function DashboardPage() {
             </li>
           ))}
           {todos.length === 0 && (
-            <li className="todo-empty">Tout est à jour. Envoie tes prochaines commandes depuis WhatsApp et elles apparaîtront ici.</li>
+            <li className="todo-empty">Tout est à jour. Vos prochaines commandes apparaîtront ici dès leur enregistrement.</li>
           )}
         </ul>
       </section>
@@ -200,12 +200,12 @@ export default async function DashboardPage() {
         <div className="panel">
           <div className="panel-head">
             <div>
-              <p className="vf-eyebrow">Lu pour toi</p>
+              <p className="vf-eyebrow">Votre activité</p>
               <h2>À savoir aujourd&apos;hui 🔎</h2>
             </div>
           </div>
           {insights.length === 0 ? (
-            <p className="muted">Commence à enregistrer des commandes : les observations apparaîtront dès qu&apos;il y aura de la donnée.</p>
+            <p className="muted">Dès vos premières commandes, vous retrouverez ici des observations concrètes sur votre boutique.</p>
           ) : (
             <div className="insights-grid">{insights.map((insight) => <InsightCard key={insight.id} insight={insight} />)}</div>
           )}

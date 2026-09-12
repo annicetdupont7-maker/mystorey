@@ -1,6 +1,7 @@
 "use client";
 /* Demo catalogue images are remote, dynamic URLs; product media lives in Supabase Storage (Mission 3). */
 /* eslint-disable @next/next/no-img-element */
+import Link from "next/link";
 import { Check, MessageCircle, Minus, Plus, ShoppingBag, Star, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useActionState } from "react";
 import type { ThemeTokens } from "@/features/themes/theme-schema";
@@ -9,7 +10,24 @@ import { createCheckoutOrder, type CheckoutActionState } from "@/features/orders
 import { categoriesWithProducts, filterProductsByCategory, type CategoryRef } from "@/features/categories/filter";
 import { formatPrice, type ProductView } from "./storefront-types";
 
-const HERO_IMAGE = "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1200&q=55";
+/**
+ * A shop with no cover photo used to borrow a stock Unsplash photo — every such
+ * storefront looked like the same anonymous shop, and it cost a remote request.
+ * The fallback is now built from the seller's own theme colours, so an unbranded
+ * shop still looks like hers, loads instantly and works offline.
+ */
+const THEME_BACKDROP = "linear-gradient(135deg, var(--store-primary), var(--store-secondary))";
+
+/**
+ * Hero text is white, and some presets have a light primary (the gold of "Maison &
+ * Beauté", the orange of "Street & Bold"), so the darkening overlay is applied over
+ * the theme gradient too, not only over a photo. Callers that put no text on the
+ * surface — the split hero's side panel — pass no overlay and get the bare gradient.
+ */
+const heroBackground = (coverUrl: string | undefined, overlay?: string) => {
+  const layer = coverUrl ? `url(${coverUrl})` : THEME_BACKDROP;
+  return overlay ? `${overlay}, ${layer}` : layer;
+};
 
 function StoreLogo({ name, logoUrl }: { name: string; logoUrl?: string | null }) {
   return (
@@ -35,7 +53,10 @@ export function StoreHeader({ name = "Maison Naya", logoUrl, catalogHref }: { na
 
 type HeroProps = { name?: string; slogan?: string; description?: string; coverUrl?: string; logoUrl?: string | null };
 
-const heroTitle = (name: string | undefined, slogan: string | undefined) => slogan || (name ? `${name}` : "Des pièces qui vous ressemblent.");
+// With no slogan the headline used to just repeat the shop name, which the eyebrow and the
+// header already show. A welcome line reads like the seller's own shop and fits any trade.
+const heroTitle = (name: string | undefined, slogan: string | undefined) =>
+  slogan?.trim() || (name ? `Bienvenue chez ${name}` : "Bienvenue dans notre boutique");
 const heroBlurb = (description: string | undefined) => description || "Une sélection pensée avec soin, pour les jours ordinaires comme les grands moments.";
 
 function HeroLogo({ logoUrl, name }: { logoUrl?: string | null; name: string }) {
@@ -46,7 +67,7 @@ function HeroLogo({ logoUrl, name }: { logoUrl?: string | null; name: string }) 
 function HeroEditorial({ name = "", slogan, description, coverUrl, logoUrl }: HeroProps) {
   return (
     <section className="store-container">
-      <div className="store-hero store-hero--editorial" style={{ backgroundImage: `linear-gradient(90deg, color-mix(in srgb, var(--store-primary), #000 78%) 0%, color-mix(in srgb, var(--store-primary), #000 35%) 55%, transparent 100%), url(${coverUrl || HERO_IMAGE})` }}>
+      <div className="store-hero store-hero--editorial" style={{ backgroundImage: heroBackground(coverUrl, "linear-gradient(90deg, color-mix(in srgb, var(--store-primary), #000 78%) 0%, color-mix(in srgb, var(--store-primary), #000 35%) 55%, transparent 100%)") }}>
         <div className="store-hero-content">
           <HeroLogo logoUrl={logoUrl} name={name} />
           <span className="vf-eyebrow" style={{ color: "inherit" }}>{name || "Votre boutique"}</span>
@@ -69,7 +90,7 @@ function HeroSplit({ name = "", slogan, description, coverUrl, logoUrl }: HeroPr
           <p>{heroBlurb(description)}</p>
           <a className="store-button store-hero-cta" href="#catalogue">Découvrir <span aria-hidden="true">→</span></a>
         </div>
-        <div className="store-hero-media" style={{ backgroundImage: `url(${coverUrl || HERO_IMAGE})` }} aria-hidden="true" />
+        <div className="store-hero-media" style={{ backgroundImage: heroBackground(coverUrl) }} aria-hidden="true" />
       </div>
     </section>
   );
@@ -78,7 +99,7 @@ function HeroSplit({ name = "", slogan, description, coverUrl, logoUrl }: HeroPr
 function HeroCompact({ name = "", slogan, description, coverUrl, logoUrl }: HeroProps) {
   return (
     <section className="store-container">
-      <div className="store-hero store-hero--compact" style={{ backgroundImage: `linear-gradient(100deg, color-mix(in srgb, var(--store-primary), #000 72%), color-mix(in srgb, var(--store-primary), #000 15%)), url(${coverUrl || HERO_IMAGE})` }}>
+      <div className="store-hero store-hero--compact" style={{ backgroundImage: heroBackground(coverUrl, "linear-gradient(100deg, color-mix(in srgb, var(--store-primary), #000 72%), color-mix(in srgb, var(--store-primary), #000 15%))") }}>
         <div className="store-hero-content">
           <HeroLogo logoUrl={logoUrl} name={name} />
           <span className="vf-eyebrow" style={{ color: "inherit" }}>{name || "Votre boutique"}</span>
@@ -93,7 +114,7 @@ function HeroCompact({ name = "", slogan, description, coverUrl, logoUrl }: Hero
 function HeroBanner({ name = "", slogan, description, coverUrl, logoUrl }: HeroProps) {
   return (
     <section className="store-container">
-      <div className="store-hero store-hero--banner" style={{ backgroundImage: `linear-gradient(90deg, #000a,#0001), url(${coverUrl || HERO_IMAGE})` }}>
+      <div className="store-hero store-hero--banner" style={{ backgroundImage: heroBackground(coverUrl, "linear-gradient(90deg, rgba(0,0,0,.72), rgba(0,0,0,.25))") }}>
         <div className="store-hero-content">
           <HeroLogo logoUrl={logoUrl} name={name} />
           <span className="vf-eyebrow" style={{ color: "inherit" }}>{name || "Votre boutique"}</span>
@@ -154,15 +175,33 @@ export function ProductImage({ product }: { product: ProductView }) {
   return product.image ? <img className="product-image" src={product.image} alt={product.name} /> : <div className="product-image product-image--empty" aria-label="Sans visuel" />;
 }
 
-export function ProductCard({ product, onAdd }: { product: ProductView; onAdd: (p: ProductView) => void }) {
+/**
+ * Nothing on the storefront used to open the product page, so the description and the
+ * extra photos were only reachable through a shared link. The photo and the name now
+ * link to it, while the price and the add-to-cart button stay where they were — the
+ * DOM is otherwise unchanged so the grid and list layouts keep their CSS.
+ *
+ * Without `storeSlug` — the seller's live preview, the admin read-only preview — the
+ * card stays inert instead of navigating out of the editor.
+ */
+export function ProductCard({ product, onAdd, storeSlug }: { product: ProductView; onAdd: (p: ProductView) => void; storeSlug?: string }) {
+  const href = storeSlug ? `/store/${storeSlug}/produit/${product.id}` : null;
   return (
     <article className="product-card">
       <div className="product-media">
-        <ProductImage product={product} />
+        {href ? (
+          <Link className="product-media-link" href={href} tabIndex={-1} aria-hidden="true">
+            <ProductImage product={product} />
+          </Link>
+        ) : (
+          <ProductImage product={product} />
+        )}
         {product.featured && <span className="product-badge"><Star size={11} aria-hidden="true" /> À la une</span>}
       </div>
       <div className="product-details">
-        <h3 className="product-name">{product.name}</h3>
+        <h3 className="product-name">
+          {href ? <Link className="product-name-link" href={href}>{product.name}</Link> : product.name}
+        </h3>
         {product.note && <p className="product-note">{product.note}</p>}
         <div className="product-bottom">
           <span className="product-price">{product.price}</span>
@@ -173,19 +212,19 @@ export function ProductCard({ product, onAdd }: { product: ProductView; onAdd: (
   );
 }
 
-export function ProductGrid({ products, tokens, onAdd, id = "catalogue" }: { products: ProductView[]; tokens: ThemeTokens; onAdd: (p: ProductView) => void; id?: string }) {
+export function ProductGrid({ products, tokens, onAdd, id = "catalogue", storeSlug }: { products: ProductView[]; tokens: ThemeTokens; onAdd: (p: ProductView) => void; id?: string; storeSlug?: string }) {
   const ordered = [...products].sort((a, b) => Number(b.featured) - Number(a.featured));
   if (products.length === 0) return <section className="store-container"><p className="product-empty">Cette boutique n’a pas encore de produits publiés.</p></section>;
   return (
     <section id={id} className={`store-container ${tokens.layout.catalogLayout === "grid" ? "product-grid" : ""}`} aria-label="Produits">
       <h2 className="catalogue-title">{products.some((p) => p.featured) ? "Nos pièces" : "Le catalogue"}</h2>
-      {tokens.layout.catalogLayout === "grid" ? ordered.map((p) => <ProductCard key={p.id} product={p} onAdd={onAdd} />) : <ProductList products={ordered} onAdd={onAdd} />}
+      {tokens.layout.catalogLayout === "grid" ? ordered.map((p) => <ProductCard key={p.id} product={p} onAdd={onAdd} storeSlug={storeSlug} />) : <ProductList products={ordered} onAdd={onAdd} storeSlug={storeSlug} />}
     </section>
   );
 }
 
-export function ProductList({ products, onAdd }: { products: ProductView[]; onAdd: (p: ProductView) => void }) {
-  return <div className="product-list">{products.map((p) => <ProductCard key={p.id} product={p} onAdd={onAdd} />)}</div>;
+export function ProductList({ products, onAdd, storeSlug }: { products: ProductView[]; onAdd: (p: ProductView) => void; storeSlug?: string }) {
+  return <div className="product-list">{products.map((p) => <ProductCard key={p.id} product={p} onAdd={onAdd} storeSlug={storeSlug} />)}</div>;
 }
 
 function copyTextToClipboard(text: string): boolean {
@@ -300,7 +339,13 @@ export function CartDrawer({ items, onClose, onChangeQty, onClear, whatsapp, sto
 }
 
 export function StoreFooter({ name = "Maison Naya" }: { name?: string }) {
-  return <footer className="store-container store-footer">{name} · Une boutique créée avec MYSTOREY</footer>;
+  // The credit is the one acquisition channel every storefront carries: a visitor who
+  // likes the shop can find out how to open hers. It used to be plain text.
+  return (
+    <footer className="store-container store-footer">
+      {name} · Une boutique créée avec <Link className="store-footer-link" href="/">MYSTOREY</Link>
+    </footer>
+  );
 }
 
 export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }: { product: ProductView; storeName?: string; logoUrl?: string | null; whatsapp?: string; slug: string }) {
@@ -383,12 +428,9 @@ export function Storefront({ tokens, products, storeName, slogan, description, w
   return (
     <div className="theme-store">
       <StoreHeader name={storeName} logoUrl={logoUrl} />
+      {/* The hero already carries the slogan as its headline (or eyebrow on the featured
+          variant), so no separate tagline strip: it printed the same sentence twice. */}
       <StoreHero name={storeName} slogan={slogan} description={description} coverUrl={coverUrl} logoUrl={logoUrl} products={products} heroVariant={tokens.layout.heroVariant} onAdd={addItem} />
-      {slogan && (
-        <div className="store-container store-tagline">
-          <p>{slogan}</p>
-        </div>
-      )}
       {chips.length > 0 && (
         <section id="catalogue" className="store-container store-categories" aria-label="Catégories" role="group">
           <button type="button" className={`category-chip${activeCategory === null ? " is-active" : ""}`} onClick={() => setActiveCategory(null)}>Tous</button>
@@ -397,7 +439,9 @@ export function Storefront({ tokens, products, storeName, slogan, description, w
           ))}
         </section>
       )}
-      <ProductGrid products={visible} tokens={tokens} onAdd={addItem} id={chips.length > 0 ? undefined : "catalogue"} />
+      {/* Product pages are only linked on the real storefront: a preview must not
+          navigate the seller (or an admin) out of the editor she is working in. */}
+      <ProductGrid products={visible} tokens={tokens} onAdd={addItem} id={chips.length > 0 ? undefined : "catalogue"} storeSlug={disableCheckout ? undefined : slug} />
       {cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={() => setItems([])} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} disableCheckout={disableCheckout} />}
       <button
         className={`cart-bubble${itemCount > 0 ? " is-visible" : ""}`}

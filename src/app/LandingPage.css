@@ -822,24 +822,53 @@
    9. SECTION TARIFS / OFFRE
    ================================================= */
 .vendoflow-page .vf-pricing-wrapper {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2rem 1.5rem;
+  align-items: start;
   justify-content: center;
+  max-width: 1060px;
+  margin: 0 auto;
 }
 
 .vendoflow-page .vf-pricing-card {
   background-color: #fff;
-  border: 2px solid var(--vf-burgundy);
+  border: 1.5px solid rgba(89, 35, 59, .16);
   border-radius: 22px;
-  padding: 3rem 2.5rem;
+  padding: 2.5rem 1.75rem;
   max-width: 480px;
   width: 100%;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 1.25rem;
+  gap: 1rem;
   box-shadow: var(--vf-shadow-lg);
   position: relative;
+}
+
+/* The plan we recommend carries the full burgundy frame; the others stay quieter
+   so the eye lands on one choice instead of three identical rectangles. */
+.vendoflow-page .vf-pricing-card--featured {
+  border: 2px solid var(--vf-burgundy);
+}
+
+.vendoflow-page .vf-price-period {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vf-text-muted);
+}
+
+.vendoflow-page .vf-pricing-note {
+  max-width: 640px;
+  margin: 2.5rem auto 0;
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  color: var(--vf-text-muted);
 }
 
 .vendoflow-page .vf-pricing-tag {
@@ -1115,6 +1144,12 @@
     gap: 2.5rem;
   }
 
+  /* Three plans side by side stop being readable here; stacked cards keep the
+     recommended one visually distinct without squeezing the price. */
+  .vendoflow-page .vf-pricing-wrapper {
+    grid-template-columns: 1fr;
+  }
+
   .vendoflow-page .vf-footer-grid {
     grid-template-columns: 1fr 1fr;
     gap: 2.5rem;
@@ -1247,6 +1282,11 @@
   .vendoflow-page .vf-why-card,
   .vendoflow-page .vf-pricing-card {
     padding: 1.75rem 1.25rem;
+  }
+
+  /* "2 500 FCFA" at the desktop size overflows a 360px card. */
+  .vendoflow-page .vf-price-val {
+    font-size: 2.5rem;
   }
 
   .vendoflow-page .vf-footer-grid {

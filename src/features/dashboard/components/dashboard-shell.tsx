@@ -18,7 +18,9 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const storeUrl = storeSlug ? `/store/${storeSlug}` : null;
-  const initials = (name || "V").split(" ").map((chunk) => chunk[0]).slice(0, 2).join("").toUpperCase() || "V";
+  // Fall back to the shop's own initial rather than a letter from the old product name.
+  const initialsSource = name?.trim() || storeName?.trim() || "M";
+  const initials = initialsSource.split(" ").filter(Boolean).map((chunk) => chunk[0]).slice(0, 2).join("").toUpperCase() || "M";
 
   return (
     <main className="dashboard-page">

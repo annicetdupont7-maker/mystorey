@@ -3320,6 +3320,34 @@ a { color: inherit; }
   font-weight: 700;
 }
 
+/* Product usage: a seller should see how close she is to her limit at a glance,
+   not have to compare two numbers. */
+.subscription-meter {
+  display: block;
+  height: .45rem;
+  margin-top: .1rem;
+  border-radius: 99px;
+  background: rgba(123, 48, 72, .12);
+  overflow: hidden;
+}
+
+.subscription-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--brand);
+  transition: width var(--transition-slow);
+}
+
+.subscription-meter-fill.is-full { background: var(--warn); }
+
+.subscription-usage-hint {
+  display: block;
+  font-size: .84rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
 @media (max-width: 900px) {
   .stats-overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -3975,6 +4003,13 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .product-list .product-image { aspect-ratio: auto; height: 100%; min-height: 9rem; }
 .product-details { display: flex; flex-direction: column; gap: .6rem; padding: clamp(1rem, 2vw, 1.35rem); }
 .product-name { margin: 0; font-size: 1.06rem; line-height: 1.15; }
+/* Photo and name open the product page. The photo link is a plain block so the image
+   keeps filling the media box; the name keeps the card's text colour, underlined on
+   hover only, so the catalogue does not read as a list of blue links. */
+.product-media-link { display: block; }
+.product-name-link { color: inherit; text-decoration: none; }
+.product-name-link:hover { text-decoration: underline; text-underline-offset: .18em; }
+.product-name-link:focus-visible { outline: 3px solid var(--store-primary); outline-offset: 3px; border-radius: .2rem; }
 .product-note { margin: 0; color: color-mix(in srgb, var(--store-text), transparent 37%); font-size: .84rem; }
 .product-bottom { display: flex; justify-content: space-between; align-items: end; gap: .5rem; margin-top: auto; }
 .product-price { font-weight: 800; }
@@ -4050,6 +4085,9 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .cart-bubble-count { position: absolute; top: -.3rem; right: -.2rem; min-width: 1.25rem; height: 1.25rem; padding: 0 .25rem; display: grid; place-items: center; border-radius: 99px; background: var(--store-accent); color: var(--store-primary); font-size: .72rem; font-weight: 900; animation: pop .25s ease; }
 @keyframes pop { from { transform: scale(.4); } to { transform: none; } }
 .store-footer { padding: 2rem 1rem 3.5rem; border-top: 1px solid var(--store-line); font-size: .85rem; opacity: .75; text-align: center; }
+.store-footer-link { font-weight: 800; text-decoration: none; }
+.store-footer-link:hover { text-decoration: underline; text-underline-offset: .18em; }
+.store-footer-link:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; border-radius: .2rem; }
 
 /* The storefront is also rendered inside the appearance preview. Keep every
   surface fluid so the same layout works on a phone and in the preview pane. */

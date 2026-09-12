@@ -36,7 +36,7 @@ export function OnboardingForm(){
       <h1>Choisissez votre style.</h1>
       <p className="muted">Vous pourrez tout ajuster plus tard.</p>
       <div className="preset-picker">{Object.values(THEME_PRESETS).map(theme=><button type="button" key={theme.id} onClick={()=>setPreset(theme.id)} className={`preset-option ${preset===theme.id?"is-selected":""}`} style={{"--swatch":theme.tokens.colors.primary,"--paper":theme.tokens.colors.background} as CSSProperties}><span className="preset-swatch"/><strong>{theme.label}</strong><small>{theme.mood}</small></button>)}</div>
-      <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(2)}>Retour</button><button type="button" className="vf-button" onClick={()=>setStep(4)}>Voir ma boutique</button></div>
+      <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(2)}>Retour</button><button type="button" className="vf-button" onClick={()=>setStep(4)}>Continuer</button></div>
     </section>}
     {step===4&&<section>
       <p className="vf-eyebrow">Étape 4 sur 4</p>
@@ -44,11 +44,17 @@ export function OnboardingForm(){
       <p className="muted">Dernière étape : indiquez le numéro WhatsApp qui recevra vos commandes.</p>
       <label className="field"><span>Numéro WhatsApp (recommandé)</span><input name="whatsappInput" type="tel" inputMode="tel" autoComplete="tel" value={whatsapp} onChange={e=>setWhatsapp(e.target.value)} placeholder="+237 6 90 00 00 00"/><small className="field-hint">Format international obligatoire avec + et l’indicatif pays, par exemple +237 6 90 00 00 00.</small></label>
       {state.fieldErrors?.whatsapp&&<p className="form-error">{state.fieldErrors.whatsapp[0]}</p>}
-      <div className="onboarding-preview" style={{background:preview.tokens.colors.background,color:preview.tokens.colors.text}}><span style={{color:preview.tokens.colors.primary}}>Maison {name||"Vendo"}</span><strong style={{fontFamily:preview.tokens.typography.headingFont}}>Votre histoire commence ici.</strong><button type="button" style={{background:preview.tokens.colors.primary}}>Voir la collection</button></div>
+      {/* Preview the shop name the seller actually typed. It used to render
+          "Maison {name}" with a "Vendo" fallback from the old product name. */}
+      <div className="onboarding-preview" style={{background:preview.tokens.colors.background,color:preview.tokens.colors.text}}><span style={{color:preview.tokens.colors.primary}}>{name||"Votre boutique"}</span><strong style={{fontFamily:preview.tokens.typography.headingFont}}>Votre histoire commence ici.</strong><button type="button" style={{background:preview.tokens.colors.primary}}>Voir la collection</button></div>
       <input type="hidden" name="name" value={name}/>
       <input type="hidden" name="slug" value={slug}/>
       <input type="hidden" name="whatsapp" value={whatsapp}/>
       {state.error&&<p className="form-error" role="alert">{state.error}</p>}
+      {/* Submission happens here, so an error about an earlier step has to be readable
+          here too — otherwise "Finaliser" looks like it did nothing. */}
+      {(state.fieldErrors?.slug||state.fieldErrors?.name)&&<p className="form-error" role="alert">{state.fieldErrors.slug?.[0]??state.fieldErrors.name?.[0]}</p>}
+      {(state.error||state.fieldErrors?.slug)&&<button type="button" className="text-button" onClick={()=>setStep(2)}>Modifier l’adresse de ma boutique</button>}
       <div className="form-row"><button type="button" className="vf-button vf-button--ghost" onClick={()=>setStep(3)}>Retour</button><button className="vf-button" disabled={pending}>{pending?"Création…":"Finaliser ma boutique"}</button></div>
     </section>}
   </form>;

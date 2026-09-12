@@ -16,39 +16,39 @@ export function buildInsights(ctx: InsightContext): Insight[] {
   const { overview, products } = ctx;
 
   if (products.length === 0) {
-    insights.push({ id: "no-products", tone: "highlight", title: "Bienvenue dans ton espace", body: "Ajoute ton premier produit pour commencer à vendre.", href: "/dashboard/products/new", cta: "Ajouter un produit" });
+    insights.push({ id: "no-products", tone: "highlight", title: "Bienvenue dans votre espace", body: "Ajoutez votre premier produit pour commencer à vendre.", href: "/dashboard/products/new", cta: "Ajouter un produit" });
   } else {
     if (!ctx.storePublished) {
-      insights.push({ id: "not-published", tone: "warning", title: "Ta boutique n’est pas encore publiée", body: "Personne ne peut encore voir ton catalogue. Publie-la pour ouvrir ta vitrine.", href: "/dashboard/storefront/appearance", cta: "Publier" });
+      insights.push({ id: "not-published", tone: "warning", title: "Votre boutique n’est pas encore publiée", body: "Personne ne peut encore voir votre catalogue. Publiez-la pour ouvrir votre vitrine.", href: "/dashboard/storefront/appearance", cta: "Publier" });
     }
   }
   if (!ctx.whatsappSet) {
-    insights.push({ id: "no-whatsapp", tone: "warning", title: "Aucun numéro WhatsApp", body: "Sans numéro WhatsApp, tes clients ne peuvent pas commander.", href: "/dashboard/settings", cta: "Ajouter le numéro" });
+    insights.push({ id: "no-whatsapp", tone: "warning", title: "Aucun numéro WhatsApp", body: "Sans numéro WhatsApp, vos clientes ne peuvent pas commander.", href: "/dashboard/settings", cta: "Ajouter le numéro" });
   }
 
   if (overview.totalOrders === 0) {
-    insights.push({ id: "no-data", tone: "quiet", title: "Pas encore assez de données", body: "Tes statistiques apparaîtront ici dès que tu auras enregistré tes premières commandes." });
+    insights.push({ id: "no-data", tone: "quiet", title: "Pas encore assez de données", body: "Vos statistiques apparaîtront ici dès votre première commande enregistrée." });
   } else {
     if (overview.pendingCount > 0) {
       insights.push({
         id: "pending-orders", tone: "highlight", title: `${overview.pendingCount} commande${overview.pendingCount > 1 ? "s" : ""} à traiter`,
-        body: "Elles attendent ta confirmation pour être préparées.", href: "/dashboard/orders", cta: "Voir les commandes",
+        body: "Elles attendent votre confirmation pour être préparées.", href: "/dashboard/orders", cta: "Voir les commandes",
       });
     }
     const stats = productOrderStats(ctx);
     const sold = products.map((p) => ({ product: p, ...(stats.get(p.id) ?? { orders: 0, revenue: 0 }) })).filter((entry) => entry.orders > 0).sort((a, b) => b.orders - a.orders || b.revenue - a.revenue);
     const best = sold.length > 0 ? sold[0] : null;
     if (best) {
-      insights.push({ id: "popular-product", tone: "positive", title: `“${best.product.name}” est ton produit le plus commandé`, body: `${best.orders} commande${best.orders > 1 ? "s" : ""} · ${best.revenue.toLocaleString("fr-FR")} FCFA générés.`, href: "/dashboard/products", cta: "Voir le catalogue" });
+      insights.push({ id: "popular-product", tone: "positive", title: `“${best.product.name}” est votre produit le plus commandé`, body: `${best.orders} commande${best.orders > 1 ? "s" : ""} · ${best.revenue.toLocaleString("fr-FR")} FCFA générés.`, href: "/dashboard/products", cta: "Voir le catalogue" });
     }
     const diff = overview.lastWeekCount - overview.previousWeekCount;
     if (diff > 0) {
-      insights.push({ id: "week-growth", tone: "positive", title: "Tes commandes progressent cette semaine", body: `+${diff} commande${diff > 1 ? "s" : ""} par rapport à la semaine précédente.` });
+      insights.push({ id: "week-growth", tone: "positive", title: "Vos commandes progressent cette semaine", body: `+${diff} commande${diff > 1 ? "s" : ""} par rapport à la semaine précédente.` });
     } else if (diff < 0) {
-      insights.push({ id: "week-drop", tone: "warning", title: "Cette semaine est plus calme", body: `${-diff} commande${-diff > 1 ? "s" : ""} de moins que la semaine précédente. À toi de relancer la machine.` });
+      insights.push({ id: "week-drop", tone: "warning", title: "Cette semaine est plus calme", body: `${-diff} commande${-diff > 1 ? "s" : ""} de moins que la semaine précédente. Un partage de votre lien peut relancer l’activité.` });
     }
     if (overview.weekendShare !== null && overview.weekendShare >= 0.6) {
-      insights.push({ id: "weekend-opportunity", tone: "opportunity", title: "🎯 Le week-end porte les ventes", body: "Tes commandes se concentrent le samedi/dimanche. Mets tes nouveautés en avant dès vendredi." });
+      insights.push({ id: "weekend-opportunity", tone: "opportunity", title: "🎯 Le week-end porte les ventes", body: "Vos commandes se concentrent le samedi et le dimanche. Mettez vos nouveautés en avant dès le vendredi." });
     }
     const ignored = products.filter((p) => p.is_available && (stats.get(p.id)?.orders ?? 0) === 0);
     if (ignored.length > 0) {
