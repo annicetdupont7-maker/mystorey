@@ -1,5 +1,6 @@
 import "server-only";
 import { createSupabaseServiceClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/features/auth/admin";
 import { buildActivityFeed, computeAdminStats } from "./stats";
 import type { ActivityItem, AdminOrderRow, AdminProductRow, AdminStats, AdminStoreRow, AdminUserRow } from "./types";
 
@@ -7,7 +8,24 @@ type ServiceDB = ReturnType<typeof createSupabaseServiceClient>;
 
 const PAGES_MAX = 1000;
 
+/**
+ * Every reader below goes through the service client, which bypasses RLS, so each one
+ * proves the caller is an administrator itself.
+ *
+ * requireAdmin() in the /admin layout was NOT enough: a layout and the page under it
+ * render in parallel, so the page finished fetching and its payload was serialised into
+ * the redirect response. An anonymous GET /admin answered 307 to /login while carrying
+ * real store names and a user's email address in the body.
+ *
+ * requireAdmin() redirects or 404s — it throws, aborting the render before any row is
+ * returned — and is request-cached, so the guard costs one query per request.
+ */
+async function assertAdmin() {
+  await requireAdmin();
+}
+
 export async function getAdminUsers(): Promise<{ users: AdminUserRow[]; error?: string }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data: authResult, error: authError } = await supabase.auth.admin.listUsers({ page: 1, perPage: PAGES_MAX });
   if (authError || !authResult?.users) return { users: [], error: "Impossible de charger les utilisateurs." };
@@ -40,6 +58,7 @@ export async function getAdminUsers(): Promise<{ users: AdminUserRow[]; error?: 
 type StoreRef = { id: string; name: string; slug: string };
 
 export async function getAdminStores(): Promise<{ stores: AdminStoreRow[]; error?: string }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data: raw, error } = await supabase
     .from("stores")
@@ -50,6 +69,7 @@ export async function getAdminStores(): Promise<{ stores: AdminStoreRow[]; error
 }
 
 export async function getAdminProducts(): Promise<{ products: AdminProductRow[]; error?: string }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data: raw, error } = await supabase
     .from("products")
@@ -61,6 +81,7 @@ export async function getAdminProducts(): Promise<{ products: AdminProductRow[];
 }
 
 export async function getAdminOrders(): Promise<{ orders: AdminOrderRow[]; error?: string }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data: raw, error } = await supabase
     .from("orders")
@@ -89,6 +110,7 @@ export async function getAdminOrders(): Promise<{ orders: AdminOrderRow[]; error
 }
 
 export async function getAdminDashboard(): Promise<{ stats: AdminStats; recentOrders: AdminOrderRow[]; activity: ActivityItem[]; error?: string }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { users, error } = await getAdminUsers();
   const { data: profiles } = await supabase.from("profiles").select("role");
@@ -163,6 +185,7 @@ async function loadOwnerNames(supabase: ServiceDB, ownerIds: string[]): Promise<
 }
 
 export async function getAdminUserById(id: string): Promise<{ user: AdminUserRow | null; stores: AdminStoreRow[] }> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data: authRes, error: authErr } = await supabase.auth.admin.getUserById(id);
   const u = authRes?.user;
@@ -192,6 +215,7 @@ export async function getAdminUserById(id: string): Promise<{ user: AdminUserRow
 }
 
 export async function getAdminStoreRefs(): Promise<StoreRef[]> {
+  await assertAdmin();
   const supabase = createSupabaseServiceClient();
   const { data } = await supabase.from("stores").select("id,name,slug").order("name");
   return (data ?? []) as StoreRef[];
