@@ -9,6 +9,8 @@ import { computeOrderOverview, countOrdersByProduct } from "@/features/orders/ov
 import { buildInsights, buildTodos } from "@/features/insights/rules";
 import { InsightCard } from "@/features/insights/components/insight-card";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
+import { StoreShareSheet } from "@/features/sharing/components/share-sheet";
+import { getSellerSubscriptionStatus } from "@/features/subscriptions/data";
 import { formatPrice } from "@/features/storefront/storefront-types";
 import { StatusBadge } from "@/features/orders/components/status-badge";
 import type { ProductForInsight } from "@/features/insights/types";
@@ -19,11 +21,12 @@ export default async function DashboardPage() {
   const { store, user, supabase } = await getMyFirstStore();
   if (!store) redirect("/onboarding");
 
-  // Fetch profile, products, and orders in parallel for better performance
-  const [profileData, productsResult, ordersResult] = await Promise.all([
+  // Fetch profile, products, orders and plan in parallel for better performance
+  const [profileData, productsResult, ordersResult, subscriptionStatus] = await Promise.all([
     supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle(),
     getProducts(),
     getOrders(),
+    getSellerSubscriptionStatus(),
   ]);
 
   const { data: profile } = profileData;
@@ -42,11 +45,20 @@ export default async function DashboardPage() {
 
   // Extract primary sales KPI and secondary KPIs for hierarchical display
   const salesKpi = { label: "Chiffre d'affaires", value: formatPrice(overview.totalRevenue), detail: overview.totalOrders > 0 ? "commandes livrées" : "aucune vente pour l'instant" };
+  const productLimit = subscriptionStatus.plan.productLimit;
   const secondaryKpis = [
     { label: "Commandes", value: String(overview.totalOrders), detail: `${overview.activeCount} en cours` },
     { label: "À traiter", value: String(overview.pendingCount), detail: "nouvelle / à confirmer" },
-    { label: "Produits", value: String(products.length), detail: `${products.filter((p) => p.is_available).length} en vente` },
+    {
+      label: "Produits",
+      value: productLimit ? `${products.length} / ${productLimit}` : String(products.length),
+      detail: `${products.filter((p) => p.is_available).length} en vente`,
+      // A seller should notice she is nearing her plan limit before she is blocked.
+      meter: productLimit ? Math.min(products.length / productLimit, 1) : null,
+    },
   ];
+  const published = store.status === "published";
+  const publicPath = `/store/${store.slug}`;
   const recentOrders = orders.slice(0, 5);
   const salesByDay = Array.from({ length: 7 }, (_, index) => {
     const date = new Date();
@@ -98,9 +110,43 @@ export default async function DashboardPage() {
             <span className="kpi-label">{kpi.label}</span>
             <strong className="kpi-value">{kpi.value}</strong>
             <span className="kpi-detail">{kpi.detail}</span>
+            {kpi.meter !== null && kpi.meter !== undefined && (
+              <span className="kpi-meter" aria-hidden="true">
+                <span className={`kpi-meter-fill${kpi.meter >= 1 ? " is-full" : ""}`} style={{ width: `${Math.max(kpi.meter * 100, 3)}%` }} />
+              </span>
+            )}
           </article>
         ))}
       </section>
+
+      {/* The activation moment: a published shop is worth nothing unshared, so the link
+          and the share action sit on the home screen rather than behind a header icon. */}
+      {published && (
+        <section className="share-spotlight">
+          <div className="share-spotlight-copy">
+            <p className="vf-eyebrow">Votre boutique est en ligne</p>
+            <h2>Partagez votre lien à vos clientes</h2>
+            <p className="share-spotlight-url">{publicPath}</p>
+          </div>
+          <div className="share-spotlight-actions">
+            <StoreShareSheet storeName={store.name} storeSlug={store.slug} />
+            <Link className="vf-button vf-button--ghost" href={publicPath} target="_blank" rel="noopener noreferrer">Voir ma boutique</Link>
+          </div>
+        </section>
+      )}
+
+      {/* §10: unconfirmed orders are the closest thing to an abandoned cart in a
+          WhatsApp flow — the amount still recoverable, and one click to act on it. */}
+      {overview.pendingCount > 0 && (
+        <section className="recovery-banner">
+          <div>
+            <p className="vf-eyebrow">À récupérer</p>
+            <h2>{overview.pendingCount} commande{overview.pendingCount > 1 ? "s" : ""} en attente de confirmation</h2>
+            <p className="muted">Soit {formatPrice(overview.pendingRevenue)} encore en jeu. Un message WhatsApp préparé suffit souvent à les conclure.</p>
+          </div>
+          <Link className="vf-button" href="/dashboard/marketing">Relancer mes clientes <ArrowRight size={16} aria-hidden="true" /></Link>
+        </section>
+      )}
 
       <section className="dashboard-orders-panel panel">
         <div className="panel-head">

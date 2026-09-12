@@ -1,4 +1,6 @@
 import Link from "next/link";
+import Image from "next/image";
+import heroVisual from "../../public/images/new-image-landing.webp";
 import "./LandingPage.css";
 
 export default function LandingPage() {
@@ -57,8 +59,35 @@ export default function LandingPage() {
             <div className="vf-hero-actions"><Link href="/register" className="vf-btn-primary">Créer ma boutique gratuitement <span aria-hidden="true">→</span></Link><a href="#comment-ca-marche" className="vf-btn-secondary">Découvrir comment ça marche</a></div>
             <div className="vf-hero-trust"><span>✓ Sans carte bancaire pour commencer</span><span>✓ Pensé pour le mobile</span></div>
           </div>
-          <div className="vf-hero-image-wrapper" aria-label="Aperçu d’une boutique MYSTOREY">
-            <div className="vf-hero-window"><div className="vf-hero-window-bar"><span /><span /><span /></div><div className="vf-hero-store-preview"><span className="vf-kicker">MA BOUTIQUE</span><h2>Des pièces qui vous ressemblent.</h2><p>Une vitrine simple à partager avec vos clientes.</p><div className="vf-hero-product-row"><span /><span /><span /></div></div></div>
+          {/* A real photo of the kind of goods our sellers actually sell, instead of the
+              CSS-drawn fake browser window that was here. The floating badges state the
+              value proposition in four words: one link, orders in WhatsApp. */}
+          <div className="vf-hero-image-wrapper">
+            {/* The hero is the LCP element, so it is preloaded. `preload` replaces the
+                `priority` prop, deprecated in Next 16. Imported statically so the
+                dimensions and the blur placeholder come from the file itself. */}
+            <Image
+              className="vf-hero-img"
+              src={heroVisual}
+              alt="Sacs, soins, bijoux et vêtements présentés comme dans une boutique MYSTOREY"
+              sizes="(max-width: 1024px) 100vw, 540px"
+              placeholder="blur"
+              preload
+            />
+            <div className="vf-float-badge vf-float-badge--stat">
+              <span className="vf-stat-arrow" aria-hidden="true">↗</span>
+              <span className="vf-float-text">
+                <strong>Un seul lien</strong>
+                <small>à partager partout</small>
+              </span>
+            </div>
+            <div className="vf-float-badge vf-float-badge--order">
+              <span className="vf-float-icon" aria-hidden="true">💬</span>
+              <span className="vf-float-text">
+                <strong>Nouvelle commande</strong>
+                <small>reçue sur WhatsApp</small>
+              </span>
+            </div>
           </div>
         </div>
       </section>

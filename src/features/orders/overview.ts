@@ -5,6 +5,8 @@ export type OrderOverview = {
   totalOrders: number;
   totalRevenue: number;
   pendingCount: number;
+  /** What the unconfirmed orders are worth: the amount a follow-up could still recover. */
+  pendingRevenue: number;
   activeCount: number;
   byStatus: Record<OrderStatus, number>;
   lastWeekCount: number;
@@ -21,6 +23,7 @@ export function computeOrderOverview(orders: OrderRow[], now: Date = new Date())
   let totalOrders = 0;
   let activeCount = 0;
   let pendingCount = 0;
+  let pendingRevenue = 0;
   let weekendOrders = 0;
   let datedOrders = 0;
   let firstOrderAt: string | null = null;
@@ -37,7 +40,7 @@ export function computeOrderOverview(orders: OrderRow[], now: Date = new Date())
     totalOrders += 1;
     if (order.status === "delivered") totalRevenue += order.total;
     if (isActiveStatus(order.status)) activeCount += 1;
-    if (PENDING_STATUSES.includes(order.status)) pendingCount += 1;
+    if (PENDING_STATUSES.includes(order.status)) { pendingCount += 1; pendingRevenue += order.total; }
     if (created.getDay() === 0 || created.getDay() === 6) weekendOrders += 1;
     datedOrders += 1;
     if (!firstOrderAt || created.getTime() < new Date(firstOrderAt).getTime()) firstOrderAt = order.created_at;
@@ -50,6 +53,7 @@ export function computeOrderOverview(orders: OrderRow[], now: Date = new Date())
     totalOrders,
     totalRevenue,
     pendingCount,
+    pendingRevenue,
     activeCount,
     byStatus,
     lastWeekCount,

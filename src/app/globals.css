@@ -4084,6 +4084,113 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .cart-bubble.is-visible { opacity: 1; transform: none; pointer-events: auto; }
 .cart-bubble-count { position: absolute; top: -.3rem; right: -.2rem; min-width: 1.25rem; height: 1.25rem; padding: 0 .25rem; display: grid; place-items: center; border-radius: 99px; background: var(--store-accent); color: var(--store-primary); font-size: .72rem; font-weight: 900; animation: pop .25s ease; }
 @keyframes pop { from { transform: scale(.4); } to { transform: none; } }
+/* Plan usage on the products KPI: the limit should be felt before it blocks. */
+.kpi-meter { display: block; height: .3rem; margin-top: .55rem; border-radius: 99px; background: rgba(123, 48, 72, .12); overflow: hidden; }
+.kpi-meter-fill { display: block; height: 100%; border-radius: 99px; background: var(--brand); transition: width var(--transition-slow); }
+.kpi-meter-fill.is-full { background: var(--warn); }
+
+/* The activation moment: shop is live, here is the link, share it. */
+.share-spotlight {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.35rem 1.5rem;
+  border-radius: 1.4rem;
+  border: 1px solid rgba(47, 125, 91, .2);
+  background: linear-gradient(135deg, rgba(223, 240, 231, .85), rgba(255, 255, 255, .9));
+}
+.share-spotlight-copy { min-width: 0; }
+.share-spotlight-copy h2 { margin: .25rem 0 .4rem; font-family: var(--font-display); font-size: clamp(1.25rem, 3vw, 1.6rem); letter-spacing: -.02em; }
+.share-spotlight-url { margin: 0; font-weight: 700; font-size: .9rem; color: var(--ink-soft); overflow-wrap: anywhere; }
+.share-spotlight-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+
+/* Unconfirmed orders: the money still on the table. */
+.recovery-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  padding: 1.35rem 1.5rem;
+  border-radius: 1.4rem;
+  border: 1px solid color-mix(in srgb, var(--warn), transparent 65%);
+  background: linear-gradient(135deg, rgba(247, 232, 196, .7), rgba(255, 255, 255, .9));
+}
+.recovery-banner h2 { margin: .25rem 0 .4rem; font-family: var(--font-display); font-size: clamp(1.2rem, 3vw, 1.55rem); letter-spacing: -.02em; }
+.recovery-banner p { margin: 0; font-size: .92rem; line-height: 1.5; }
+
+@media (max-width: 640px) {
+  .share-spotlight, .recovery-banner { align-items: stretch; flex-direction: column; padding: 1.1rem 1rem; }
+  .share-spotlight-actions { flex-direction: column; }
+  .share-spotlight-actions > *, .recovery-banner .vf-button { width: 100%; }
+}
+
+.stock-form { padding-bottom: .25rem; }
+.stock-row { display: flex; gap: .55rem; align-items: stretch; }
+.stock-row input { flex: 1 1 8rem; min-width: 0; }
+.stock-row .vf-button { flex: 0 0 auto; white-space: nowrap; }
+
+/* Seller-side variant editor: one line per choice, then one row of inputs to add one. */
+.variant-list { list-style: none; margin: 1rem 0; padding: 0; display: grid; gap: .55rem; }
+.variant-row {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .8rem;
+  padding: .6rem .75rem;
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: var(--surface);
+}
+.variant-row.is-hidden { opacity: .58; }
+.variant-thumb { display: grid; place-items: center; width: 3rem; height: 3rem; overflow: hidden; border-radius: .7rem; background: var(--line-soft); color: var(--ink-lighter); }
+.variant-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.variant-copy { display: grid; gap: .15rem; min-width: 0; }
+.variant-copy strong { font-size: .95rem; }
+.variant-copy small { color: var(--ink-soft); font-size: .78rem; }
+.variant-actions { display: flex; align-items: center; gap: .2rem; }
+.variant-form { display: grid; gap: .5rem; padding-top: .5rem; border-top: 1px dashed var(--line); }
+.variant-form-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 .8rem; }
+.variant-form .field { margin: .7rem 0 0; }
+.variant-form .field span small { font-weight: 600; opacity: .6; text-transform: none; letter-spacing: 0; }
+.variant-photo-row { display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; margin-top: .4rem; }
+.variant-photo-row .vf-button { margin: 0; }
+@media (max-width: 760px) {
+  .variant-form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 480px) {
+  .variant-form-grid { grid-template-columns: 1fr; }
+  .variant-photo-row { align-items: stretch; flex-direction: column; }
+  .variant-photo-row .vf-button { width: 100%; }
+}
+
+/* Variant picker on the public product page. Chips inherit the shop's own theme so the
+   choice looks like part of her boutique, not a bolted-on widget. */
+.store-variant-picker { margin: 1.1rem 0 .35rem; padding: 0; border: 0; }
+.store-variant-legend { padding: 0 0 .55rem; font-size: .78rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: color-mix(in srgb, var(--store-text), transparent 35%); }
+.store-variant-options { display: flex; flex-wrap: wrap; gap: .5rem; }
+.store-variant-option {
+  min-height: 2.75rem;
+  padding: .6rem 1rem;
+  border: 1.5px solid var(--store-line);
+  border-radius: var(--store-button-radius, .8rem);
+  background: var(--store-surface);
+  color: var(--store-text);
+  font-weight: 700;
+  transition: border-color var(--transition-normal), background var(--transition-normal), transform var(--transition-fast);
+}
+.store-variant-option:hover:not(:disabled) { border-color: var(--store-primary); transform: translateY(-1px); }
+.store-variant-option.is-active { border-color: var(--store-primary); background: var(--store-primary); color: #fff; }
+.store-variant-option:focus-visible { outline: 3px solid var(--store-primary); outline-offset: 2px; }
+.store-variant-option.is-soldout { opacity: .45; cursor: not-allowed; text-decoration: line-through; }
+.store-variant-soldout { font-weight: 600; text-decoration: none; }
+/* Scarcity stated only when it is true, never as a fake urgency badge. */
+.store-product-stock { margin: .5rem 0 0; font-size: .88rem; font-weight: 700; color: var(--store-primary); }
+
 .store-footer { padding: 2rem 1rem 3.5rem; border-top: 1px solid var(--store-line); font-size: .85rem; opacity: .75; text-align: center; }
 .store-footer-link { font-weight: 800; text-decoration: none; }
 .store-footer-link:hover { text-decoration: underline; text-underline-offset: .18em; }
@@ -4100,6 +4207,37 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .store-coming-soon-card .store-logo-mark { width: 3.2rem; height: 3.2rem; font-size: 1.6rem; }
 .store-coming-soon-card h1 { margin: .2rem 0 0; font-family: var(--font-display); font-size: 1.6rem; }
 .store-coming-soon-card p { margin: 0; color: var(--ink-soft); }
+
+/* Back-office entry, rendered only for administrators by the dashboard layout.
+   Discreet and out of the seller workflow, but always reachable without typing a URL. */
+.admin-entry {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  min-height: 2.5rem;
+  padding: .5rem .9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: #26293a;
+  color: #fff;
+  font-size: .82rem;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(20, 22, 32, .28);
+  transition: transform var(--transition-fast), box-shadow var(--transition-normal);
+}
+.admin-entry:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(20, 22, 32, .34); }
+.admin-entry:focus-visible { outline: 3px solid var(--brand); outline-offset: 2px; }
+/* The cart bubble and other bottom-right affordances never appear in the seller
+   dashboard, so this corner is free. On a phone it shrinks to the icon. */
+@media (max-width: 640px) {
+  .admin-entry { right: .75rem; bottom: .75rem; padding: .5rem .7rem; }
+  .admin-entry span { display: none; }
+}
 
 /* ============================================================
    Apparence & laboratoire interne

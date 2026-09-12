@@ -16,7 +16,7 @@ export type CheckoutActionState = {
   };
 };
 
-type CheckoutLine = { productId: string; quantity: number };
+type CheckoutLine = { productId: string; variantId?: string | null; quantity: number };
 
 export async function createCheckoutOrder(_: CheckoutActionState, formData: FormData): Promise<CheckoutActionState> {
   const storeSlug = String(formData.get("storeSlug") || "");
@@ -55,9 +55,16 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
       p_customer_phone: parsed.data.customerPhone,
       p_customer_address: parsed.data.customerAddress,
       p_note: parsed.data.note,
-      p_items: parsed.data.lines.map((line) => ({ productId: line.productId, quantity: line.quantity })),
+      p_items: parsed.data.lines.map((line) => ({ productId: line.productId, variantId: line.variantId ?? null, quantity: line.quantity })),
     });
-    if (rpcError || !created) return { error: "Impossible d’enregistrer votre commande. Réessayez." };
+    if (rpcError || !created) {
+      // The checkout function raises named errors; the two a customer can actually hit
+      // deserve an answer she can act on rather than "réessayez".
+      const code = rpcError?.message ?? "";
+      if (code.includes("checkout_insufficient_stock")) return { error: "La quantité demandée n’est plus disponible. Ajustez votre panier." };
+      if (code.includes("checkout_variant_not_found")) return { error: "Le choix sélectionné n’est plus disponible. Choisissez-en un autre." };
+      return { error: "Impossible d’enregistrer votre commande. Réessayez." };
+    }
 
     const order = created as unknown as OrderMessageView;
     const message = buildCheckoutMessage(order);

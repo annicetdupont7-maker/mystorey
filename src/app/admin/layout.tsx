@@ -13,7 +13,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     <div className="admin-shell">
       <aside className="admin-sidebar">
         <Link className="admin-brand" href="/admin">
-          <span className="admin-brand-mark">V</span>
+          <span className="admin-brand-mark">M</span>
              <span><strong>MYSTOREY</strong><small>Administration</small></span>
         </Link>
         <AdminNav />

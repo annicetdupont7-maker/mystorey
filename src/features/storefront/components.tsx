@@ -5,10 +5,20 @@ import Link from "next/link";
 import { Check, MessageCircle, Minus, Plus, ShoppingBag, Star, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useActionState } from "react";
 import type { ThemeTokens } from "@/features/themes/theme-schema";
-import { buildWhatsAppLink, buildWhatsAppOrderDraft, type CartItem } from "./whatsapp";
+import { buildWhatsAppLink, buildWhatsAppOrderDraft, cartLineName, type CartItem } from "./whatsapp";
 import { createCheckoutOrder, type CheckoutActionState } from "@/features/orders/checkout-actions";
 import { categoriesWithProducts, filterProductsByCategory, type CategoryRef } from "@/features/categories/filter";
 import { formatPrice, type ProductView } from "./storefront-types";
+import { useCart } from "./use-cart";
+import {
+  availableStock,
+  optionGroupLabel,
+  requiresVariantChoice,
+  sellableVariants,
+  variantIsSoldOut,
+  variantPrice,
+  type ProductVariant,
+} from "@/features/variants/types";
 
 /**
  * A shop with no cover photo used to borrow a stock Unsplash photo — every such
@@ -268,7 +278,9 @@ function CheckoutForm({ items, storeSlug, onBack }: { items: CartItem[]; storeSl
   return (
     <form className="checkout-form" action={action}>
       <input type="hidden" name="storeSlug" value={storeSlug} />
-      <input type="hidden" name="cart" value={JSON.stringify(items.map((i) => ({ productId: i.id, quantity: i.quantity })))} />
+      {/* Only ids and quantities travel: the server recomputes every price and total
+          from the database, so a tampered payload cannot change what is charged. */}
+      <input type="hidden" name="cart" value={JSON.stringify(items.map((i) => ({ productId: i.id, variantId: i.variantId ?? null, quantity: i.quantity })))} />
       <p className="checkout-title">Vos coordonnées</p>
       <label className="cart-field"><span>Nom</span><input name="customerName" required maxLength={120} placeholder="Votre nom" /></label>
       {state.fieldErrors?.customerName && <p className="form-error">{state.fieldErrors.customerName[0]}</p>}
@@ -302,17 +314,20 @@ export function CartDrawer({ items, onClose, onChangeQty, onClear, whatsapp, sto
           </div>
           {items.length === 0 ? <div className="cart-empty"><ShoppingBag size={24} aria-hidden="true" /><p>Votre panier est vide.</p><button type="button" className="text-button checkout-back" onClick={onClose}>Continuer les achats</button></div> : <>
           <ul className="cart-lines">
-            {items.map((item) => (
-              <li className="cart-line" key={item.id}>
-                <div className="cart-line-info"><span>{item.name}</span><small>{formatPrice(item.unitPrice)} l&apos;unité</small></div>
-                <div className="cart-qty">
-                  <button type="button" aria-label={`Diminuer ${item.name}`} onClick={() => onChangeQty(item.id, -1)}><Minus size={14} /></button>
-                  <span>{item.quantity}</span>
-                  <button type="button" aria-label={`Augmenter ${item.name}`} onClick={() => onChangeQty(item.id, 1)}><Plus size={14} /></button>
-                </div>
-                <strong className="cart-line-total">{formatPrice(item.unitPrice * item.quantity)}</strong>
-              </li>
-            ))}
+            {items.map((item) => {
+              const label = cartLineName(item);
+              return (
+                <li className="cart-line" key={item.key}>
+                  <div className="cart-line-info"><span>{label}</span><small>{formatPrice(item.unitPrice)} l&apos;unité</small></div>
+                  <div className="cart-qty">
+                    <button type="button" aria-label={`Diminuer ${label}`} onClick={() => onChangeQty(item.key, -1)}><Minus size={14} /></button>
+                    <span>{item.quantity}</span>
+                    <button type="button" aria-label={`Augmenter ${label}`} onClick={() => onChangeQty(item.key, 1)}><Plus size={14} /></button>
+                  </div>
+                  <strong className="cart-line-total">{formatPrice(item.unitPrice * item.quantity)}</strong>
+                </li>
+              );
+            })}
           </ul>
           <div className="cart-row"><span>Total estimé</span><strong>{formatPrice(subtotal)}</strong></div>
           <button type="button" className="cart-clear text-button text-button--danger" onClick={onClear}><Trash2 size={14} aria-hidden="true" /> Vider le panier</button>
@@ -348,21 +363,71 @@ export function StoreFooter({ name = "Maison Naya" }: { name?: string }) {
   );
 }
 
-export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }: { product: ProductView; storeName?: string; logoUrl?: string | null; whatsapp?: string; slug: string }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+/** "Couleur : Noir Rouge Bleu" — the seller names the group, so it reads naturally. */
+function VariantPicker({ variants, productStock, selected, onSelect }: {
+  variants: ProductVariant[];
+  productStock: number | null;
+  selected: ProductVariant | null;
+  onSelect: (variant: ProductVariant) => void;
+}) {
+  const group = optionGroupLabel(variants);
+  return (
+    <fieldset className="store-variant-picker">
+      <legend className="store-variant-legend">{group}</legend>
+      <div className="store-variant-options" role="radiogroup" aria-label={group}>
+        {variants.map((variant) => {
+          const soldOut = variantIsSoldOut(variant, productStock);
+          const active = selected?.id === variant.id;
+          return (
+            <button
+              key={variant.id}
+              type="button"
+              role="radio"
+              aria-checked={active}
+              disabled={soldOut}
+              className={`store-variant-option${active ? " is-active" : ""}${soldOut ? " is-soldout" : ""}`}
+              onClick={() => onSelect(variant)}
+            >
+              {variant.label}
+              {soldOut && <span className="store-variant-soldout"> · épuisé</span>}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug, variants = [], productStock = null }: {
+  product: ProductView;
+  storeName?: string;
+  logoUrl?: string | null;
+  whatsapp?: string;
+  slug: string;
+  variants?: ProductVariant[];
+  productStock?: number | null;
+}) {
+  const { items, addItem, changeQty, clear, itemCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
+  const usable = useMemo(() => sellableVariants(variants), [variants]);
+  const mustChoose = requiresVariantChoice(variants, productStock);
+  // Preselect the first choice that can actually be bought: one tap less, and the
+  // price and photo on screen always match something orderable.
+  const [selected, setSelected] = useState<ProductVariant | null>(
+    () => usable.find((variant) => !variantIsSoldOut(variant, productStock)) ?? null,
+  );
+
   const available = product.available !== false;
   const storeHref = `/store/${slug}`;
+  const stock = availableStock(selected, productStock);
+  const soldOut = stock !== null && stock <= 0;
+  const unitPrice = variantPrice(selected, product.unitPrice);
+  const heroImage = selected?.imageUrl ?? product.image;
 
-  const addItem = (p: ProductView) => {
-    setItems((prev) => {
-      const found = prev.find((i) => i.id === p.id);
-      return found ? prev.map((i) => (i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i)) : [...prev, { id: p.id, name: p.name, unitPrice: p.unitPrice, quantity: 1 }];
-    });
+  const handleAdd = () => {
+    addItem(product, mustChoose ? selected : null);
     setCartOpen(true);
   };
-  const changeQty = (id: string, delta: number) => setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i)).filter((i) => i.quantity > 0));
-  const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
   return (
     <div className="theme-store">
@@ -370,7 +435,8 @@ export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }
       <main className="store-container">
         <div className="store-product-page">
           <div className="store-product-media">
-            <ProductImage product={product} />
+            {/* Picking a colour swaps the main photo when that variant has one. */}
+            {heroImage ? <img className="product-image" src={heroImage} alt={product.name} /> : <div className="product-image product-image--empty" aria-label="Sans visuel" />}
             {product.featured && <span className="product-badge"><Star size={11} aria-hidden="true" /> À la une</span>}
           </div>
           <div className="store-product-info">
@@ -378,20 +444,28 @@ export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }
             <h1 className="store-product-name">{product.name}</h1>
             {product.note && <p className="store-product-note">{product.note}</p>}
             {product.images.length > 1 && <div className="store-product-gallery" aria-label="Photos du produit">{product.images.map((image, index) => <img key={image} src={image} alt={`${product.name} photo ${index + 1}`} className="store-product-thumb" />)}</div>}
-            <p className="store-product-price">{product.price}</p>
+            <p className="store-product-price">{formatPrice(unitPrice)}</p>
+            {usable.length > 0 && (
+              <VariantPicker variants={usable} productStock={productStock} selected={selected} onSelect={setSelected} />
+            )}
+            {stock !== null && stock > 0 && stock <= 5 && (
+              <p className="store-product-stock">Plus que {stock} en stock</p>
+            )}
             {product.description && <p className="store-product-note">{product.description}</p>}
-            {available ? (
+            {!available ? (
+              <p className="store-product-unavailable">Ce produit est indisponible pour le moment.</p>
+            ) : soldOut ? (
+              <p className="store-product-unavailable">{selected ? `${selected.label} est épuisé pour le moment.` : "Ce produit est épuisé pour le moment."}</p>
+            ) : (
               <div className="store-product-actions">
-                <AddToCartButton onAdd={() => addItem(product)} />
+                <AddToCartButton onAdd={handleAdd} />
                 <a className="store-link" href={storeHref}>Voir toute la boutique</a>
               </div>
-            ) : (
-              <p className="store-product-unavailable">Ce produit est indisponible pour le moment.</p>
             )}
           </div>
         </div>
       </main>
-      {available && cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={() => setItems([])} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} />}
+      {available && cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={clear} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} />}
       {available && (
         <button
           className={`cart-bubble${itemCount > 0 ? " is-visible" : ""}`}
@@ -408,19 +482,16 @@ export function StoreProductPage({ product, storeName, logoUrl, whatsapp, slug }
 }
 
 export function Storefront({ tokens, products, storeName, slogan, description, whatsapp, coverUrl, logoUrl, slug, categories = [], disableCheckout }: { tokens: ThemeTokens; products: ProductView[]; storeName?: string; slogan?: string; description?: string; whatsapp?: string; coverUrl?: string; logoUrl?: string | null; slug?: string; categories?: CategoryRef[]; disableCheckout?: boolean }) {
-  const [items, setItems] = useState<CartItem[]>([]);
+  const { items, addItem, changeQty, clear, itemCount } = useCart();
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const addItem = (p: ProductView) => {
-    setItems((prev) => {
-      const found = prev.find((i) => i.id === p.id);
-      return found ? prev.map((i) => (i.id === p.id ? { ...i, quantity: i.quantity + 1 } : i)) : [...prev, { id: p.id, name: p.name, unitPrice: p.unitPrice, quantity: 1 }];
-    });
+  // From the catalogue a product is added without a variant choice; the product page is
+  // where a variant is picked, which is why its cards link there.
+  const addFromCatalogue = (product: ProductView) => {
+    addItem(product);
     setCartOpen(true);
   };
-  const changeQty = (id: string, delta: number) => setItems((prev) => prev.map((i) => (i.id === id ? { ...i, quantity: i.quantity + delta } : i)).filter((i) => i.quantity > 0));
-  const itemCount = items.reduce((s, i) => s + i.quantity, 0);
 
   const chips = useMemo(() => categoriesWithProducts(categories, products), [categories, products]);
   const visible = useMemo(() => filterProductsByCategory(products, activeCategory), [products, activeCategory]);
@@ -430,7 +501,7 @@ export function Storefront({ tokens, products, storeName, slogan, description, w
       <StoreHeader name={storeName} logoUrl={logoUrl} />
       {/* The hero already carries the slogan as its headline (or eyebrow on the featured
           variant), so no separate tagline strip: it printed the same sentence twice. */}
-      <StoreHero name={storeName} slogan={slogan} description={description} coverUrl={coverUrl} logoUrl={logoUrl} products={products} heroVariant={tokens.layout.heroVariant} onAdd={addItem} />
+      <StoreHero name={storeName} slogan={slogan} description={description} coverUrl={coverUrl} logoUrl={logoUrl} products={products} heroVariant={tokens.layout.heroVariant} onAdd={addFromCatalogue} />
       {chips.length > 0 && (
         <section id="catalogue" className="store-container store-categories" aria-label="Catégories" role="group">
           <button type="button" className={`category-chip${activeCategory === null ? " is-active" : ""}`} onClick={() => setActiveCategory(null)}>Tous</button>
@@ -441,8 +512,8 @@ export function Storefront({ tokens, products, storeName, slogan, description, w
       )}
       {/* Product pages are only linked on the real storefront: a preview must not
           navigate the seller (or an admin) out of the editor she is working in. */}
-      <ProductGrid products={visible} tokens={tokens} onAdd={addItem} id={chips.length > 0 ? undefined : "catalogue"} storeSlug={disableCheckout ? undefined : slug} />
-      {cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={() => setItems([])} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} disableCheckout={disableCheckout} />}
+      <ProductGrid products={visible} tokens={tokens} onAdd={addFromCatalogue} id={chips.length > 0 ? undefined : "catalogue"} storeSlug={disableCheckout ? undefined : slug} />
+      {cartOpen && <CartDrawer items={items} onClose={() => setCartOpen(false)} onChangeQty={changeQty} onClear={clear} whatsapp={whatsapp} storeName={storeName} storeSlug={slug} disableCheckout={disableCheckout} />}
       <button
         className={`cart-bubble${itemCount > 0 ? " is-visible" : ""}`}
         aria-label={`Ouvrir le panier (${itemCount} article${itemCount > 1 ? "s" : ""})`}

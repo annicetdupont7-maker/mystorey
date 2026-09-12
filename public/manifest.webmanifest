@@ -1,0 +1,25 @@
+{
+  "name": "MYSTOREY",
+  "short_name": "MYSTOREY",
+  "description": "Créez votre boutique en ligne, présentez vos produits et recevez vos commandes sur WhatsApp.",
+  "lang": "fr",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF9F3",
+  "theme_color": "#4F1D2D",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

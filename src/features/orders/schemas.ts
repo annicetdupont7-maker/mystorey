@@ -1,10 +1,14 @@
 import { z } from "zod";
 import { ORDER_STATUSES, type OrderStatus } from "./order-status";
 
-export type OrderItemSnapshot = { productId: string; name: string; unitPrice: number; quantity: number };
+/** `name` is already stamped with the variant by the checkout function. */
+export type OrderItemSnapshot = { productId: string; name: string; unitPrice: number; quantity: number; variantId?: string | null; variantLabel?: string | null };
 
 export const orderLineSchema = z.object({
   productId: z.string().min(1, "Produit requis."),
+  // The chosen variant, when the product has any. The server validates that it belongs
+  // to the product and takes the price from the database, never from here.
+  variantId: z.string().min(1).nullish().transform((value) => value ?? null),
   quantity: z.coerce.number().int().min(1, "Quantité au moins 1.").max(999, "Quantité trop élevée."),
 });
 
