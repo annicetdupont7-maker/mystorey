@@ -48,7 +48,10 @@ export async function deleteStore(_:StoreActionState,formData:FormData):Promise<
 }
 export async function saveStoreIdentity(_:StoreActionState,formData:FormData):Promise<StoreActionState>{
   const id=String(formData.get("storeId")||"");
-  const parsed=storeIdentitySchema.safeParse({name:formData.get("name"),slogan:String(formData.get("slogan")??""),description:String(formData.get("description")??""),whatsapp:String(formData.get("whatsapp")??"")});
+  // Only fields actually submitted are parsed. A form that does not carry `whatsapp`
+  // (or `slogan`) must never blank the stored value — that silently broke real stores.
+  const optional=(key:string)=>formData.has(key)?String(formData.get(key)??""):undefined;
+  const parsed=storeIdentitySchema.safeParse({name:formData.get("name"),slogan:optional("slogan"),description:optional("description"),whatsapp:optional("whatsapp")});
   if(!parsed.success)return {error:"Vérifiez les informations de votre boutique.",fieldErrors:parsed.error.flatten().fieldErrors};
   const supabase=await createSupabaseServerClient();
   const {data:{user}}=await supabase.auth.getUser();
@@ -66,10 +69,13 @@ export async function saveStoreIdentity(_:StoreActionState,formData:FormData):Pr
   const coverFile=formData.get("cover");
   if(coverFile instanceof File&&coverFile.size>0){const uploaded=await uploadStoreImage(supabase,coverFile,user.id,"cover");if(!uploaded.ok){if(uploadedPaths.length)await supabase.storage.from("store-images").remove(uploadedPaths);return {error:uploaded.message};}cover_url=uploaded.url;uploadedPaths.push(uploaded.path);}
   else if(removeCover)cover_url=null;
-  const payload:Partial<Record<string,unknown>>={name:parsed.data.name,slogan:parsed.data.slogan,description:parsed.data.description,whatsapp:parsed.data.whatsapp};
+  const payload:Partial<Record<string,unknown>>={name:parsed.data.name};
+  if(parsed.data.slogan!==undefined)payload.slogan=parsed.data.slogan;
+  if(parsed.data.description!==undefined)payload.description=parsed.data.description;
+  if(parsed.data.whatsapp!==undefined)payload.whatsapp=parsed.data.whatsapp;
   if(logo_url!==undefined)payload.logo_url=logo_url;
   if(cover_url!==undefined)payload.cover_url=cover_url;
-  const {error}=await supabase.from("stores").update(payload).eq("id",id);
+  const {error}=await supabase.from("stores").update(payload).eq("id",id).eq("owner_id",user.id);
   if(error){if(uploadedPaths.length)await supabase.storage.from("store-images").remove(uploadedPaths);return {error:"Impossible d’enregistrer l’identité de votre boutique."};}
   const oldPaths=[logo_url!==undefined?storeImagePathFromPublicUrl(existingStore?.logo_url ?? null):null,cover_url!==undefined?storeImagePathFromPublicUrl(existingStore?.cover_url ?? null):null].filter((path):path is string=>!!path);
   if(oldPaths.length)await supabase.storage.from("store-images").remove(oldPaths);

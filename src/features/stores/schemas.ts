@@ -10,4 +10,11 @@ export const whatsappOptionalSchema = z.string().trim().refine((value)=>{
 },"Numéro invalide — utilisez le format international, ex. +237 6 00 00 00 00.");
 export const onboardingSchema = z.object({ name:z.string().trim().min(2,"Le nom est trop court.").max(80,"80 caractères maximum."), slug:slugSchema, presetId:z.enum(PRESET_IDS), whatsapp:whatsappOptionalSchema });
 export const storeSettingsSchema = z.object({ name:z.string().trim().min(2,"Le nom est trop court.").max(80,"80 caractères maximum."), description:z.string().trim().max(500,"500 caractères maximum."), whatsapp:whatsappOptionalSchema });
-export const storeIdentitySchema = z.object({ name:z.string().trim().min(2,"Le nom est trop court.").max(80,"80 caractères maximum."), slogan:z.string().trim().max(120,"120 caractères maximum.").optional().default(""), description:z.string().trim().max(500,"500 caractères maximum.").optional().default(""), whatsapp:whatsappOptionalSchema });
+// Identity is edited from more than one surface, so every field except the name is
+// optional: an absent field means "leave it untouched", never "erase it".
+export const storeIdentitySchema = z.object({
+	name: z.string().trim().min(2, "Le nom est trop court.").max(80, "80 caractères maximum."),
+	slogan: z.string().trim().max(120, "120 caractères maximum.").optional(),
+	description: z.string().trim().max(500, "500 caractères maximum.").optional(),
+	whatsapp: whatsappOptionalSchema.optional(),
+});

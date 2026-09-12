@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 import { useActionState, useRef, useState } from "react";
 import { Storefront } from "@/features/storefront/components";
-import { demoProducts } from "@/features/storefront/storefront-types";
+import { demoProducts, type ProductView } from "@/features/storefront/storefront-types";
 import { themeCssVariables } from "@/features/themes/resolve-theme";
 import type { ThemeTokens } from "@/features/themes/theme-schema";
 import type { StoreActionState } from "../actions";
@@ -18,12 +18,14 @@ type IdentityFormProps = {
   coverUrl: string | null;
   slug: string;
   tokens: ThemeTokens;
+  /** The seller's own catalogue. Falls back to a sample so an empty shop still previews. */
+  products?: ProductView[];
 };
 
 const readUrl = (file: File | null, fallback: string | null) =>
   file ? URL.createObjectURL(file) : fallback;
 
-export function IdentityForm({ storeId, name, slogan, description, whatsapp, logoUrl, coverUrl, slug, tokens }: IdentityFormProps) {
+export function IdentityForm({ storeId, name, slogan, description, whatsapp, logoUrl, coverUrl, slug, tokens, products }: IdentityFormProps) {
   const [state, action, pending] = useActionState<StoreActionState, FormData>(saveStoreIdentity, {});
   const [draftName, setDraftName] = useState(name);
   const [draftSlogan, setDraftSlogan] = useState(slogan);
@@ -37,6 +39,7 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
   const removeLogoRef = useRef<HTMLInputElement>(null);
   const removeCoverRef = useRef<HTMLInputElement>(null);
 
+  const previewProducts = products && products.length > 0 ? products : demoProducts;
   const previewLogo = logoPreview ?? logoUrlState;
   const previewCover = coverPreview ?? coverUrlState;
 
@@ -150,13 +153,17 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
             </div>
           </div>
           <label className="field"><span>WhatsApp</span>
-            <input name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" defaultValue={whatsapp} placeholder="+225 07 00 00 00" />
+            <input name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" defaultValue={whatsapp} placeholder="+229 01 45 28 93 99" />
+            <small className="field-hint">Format international, avec l’indicatif du pays : +229, +225, +237…</small>
+            {state.fieldErrors?.whatsapp && <small className="field-error">{state.fieldErrors.whatsapp[0]}</small>}
           </label>
         </section>
 
         {state.error && <p className="form-error" role="alert">{state.error}</p>}
         {state.success && <p className="form-success" role="status">{state.success}</p>}
         {state.fieldErrors?.name && <p className="form-error">{state.fieldErrors.name[0]}</p>}
+        {state.fieldErrors?.slogan && <p className="form-error">{state.fieldErrors.slogan[0]}</p>}
+        {state.fieldErrors?.description && <p className="form-error">{state.fieldErrors.description[0]}</p>}
         <button className="vf-button vf-button--dark identity-submit" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer mon identité"}</button>
       </form>
 
@@ -164,7 +171,7 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
         <span className="vf-eyebrow">Aperçu réel</span>
         <div className="identity-preview-frame">
           <div style={themeCssVariables(tokens)}>
-            <Storefront tokens={tokens} products={demoProducts} storeName={draftName || "Votre boutique"} slogan={draftSlogan} description={draftDescription} logoUrl={previewLogo} coverUrl={previewCover ?? undefined} slug={slug} disableCheckout />
+            <Storefront tokens={tokens} products={previewProducts} storeName={draftName || "Votre boutique"} slogan={draftSlogan} description={draftDescription} logoUrl={previewLogo} coverUrl={previewCover ?? undefined} slug={slug} disableCheckout />
           </div>
         </div>
       </aside>
