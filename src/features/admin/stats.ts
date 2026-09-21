@@ -1,3 +1,4 @@
+import { APP_TIME_ZONE } from "@/lib/time";
 import type { OrderFilter, OrderStatus } from "@/features/orders/order-status";
 import type {
   ActivityItem,
@@ -17,7 +18,7 @@ export function formatFCFA(value: number): string {
   return fcf.format(value);
 }
 
-const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric" });
+const dateFormatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", year: "numeric", timeZone: APP_TIME_ZONE });
 
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -26,7 +27,7 @@ export function formatDate(iso: string | null | undefined): string {
   return dateFormatter.format(date);
 }
 
-const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+const dateTimeFormatter = new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: APP_TIME_ZONE });
 
 export function formatDateTime(iso: string | null | undefined): string {
   if (!iso) return "—";

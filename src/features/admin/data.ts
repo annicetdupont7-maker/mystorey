@@ -31,8 +31,10 @@ export async function getAdminUsers(): Promise<{ users: AdminUserRow[]; error?: 
   if (authError || !authResult?.users) return { users: [], error: "Impossible de charger les utilisateurs." };
   const users = authResult.users;
   const ids = users.map((u) => u.id);
-  const { data: profiles } = await supabase.from("profiles").select("user_id,display_name,role").in("user_id", ids);
-  const { data: stores } = await supabase.from("stores").select("owner_id");
+  const [{ data: profiles }, { data: stores }] = await Promise.all([
+    supabase.from("profiles").select("user_id,display_name,role").in("user_id", ids),
+    supabase.from("stores").select("owner_id"),
+  ]);
   const profileByUser = new Map((profiles ?? []).map((p) => [p.user_id, p]));
   const storeCount = (ownerId: string) => (stores ?? []).filter((s) => s.owner_id === ownerId).length;
   const rows: AdminUserRow[] = users.map((u) => {
@@ -112,11 +114,17 @@ export async function getAdminOrders(): Promise<{ orders: AdminOrderRow[]; error
 export async function getAdminDashboard(): Promise<{ stats: AdminStats; recentOrders: AdminOrderRow[]; activity: ActivityItem[]; error?: string }> {
   await assertAdmin();
   const supabase = createSupabaseServiceClient();
-  const { users, error } = await getAdminUsers();
-  const { data: profiles } = await supabase.from("profiles").select("role");
-  const { data: stores } = await supabase.from("stores").select("status");
-  const { data: orders } = await supabase.from("orders").select("status,total");
-  const { count: productsCount } = await supabase.from("products").select("id", { count: "exact", head: true });
+  // Independent reads run together: done one after the other they kept the back-office
+  // home on its loading skeleton for several seconds.
+  const [{ users, error }, { data: profiles }, { data: stores }, { data: orders }, { count: productsCount }, ordersResult, activityStores] = await Promise.all([
+    getAdminUsers(),
+    supabase.from("profiles").select("role"),
+    supabase.from("stores").select("status"),
+    supabase.from("orders").select("status,total"),
+    supabase.from("products").select("id", { count: "exact", head: true }),
+    getAdminOrders(),
+    loadActivityStores(supabase),
+  ]);
   if (error) return { stats: emptyStats(), recentOrders: [], activity: [], error };
   const stats = computeAdminStats({
     profiles: (profiles ?? []) as { role: AdminUserRow["role"] | null }[],
@@ -124,10 +132,10 @@ export async function getAdminDashboard(): Promise<{ stats: AdminStats; recentOr
     orders: (orders ?? []) as { status: AdminOrderRow["status"]; total: number }[],
     productsCount: productsCount ?? 0,
   });
-  const ordersRows = (await getAdminOrders()).orders;
+  const ordersRows = ordersResult.orders;
   const activity = buildActivityFeed({
     profiles: users.map((u) => ({ id: u.id, name: u.name, email: u.email, created_at: u.created_at })),
-    stores: await loadActivityStores(supabase),
+    stores: activityStores,
     orders: ordersRows.map((o) => ({ id: o.id, order_number: o.order_number, customer_name: o.customer_name, storeName: o.storeName, created_at: o.created_at })),
   });
   return { stats, recentOrders: ordersRows.slice(0, 6), activity, error: undefined };
@@ -143,9 +151,11 @@ async function loadActivityStores(supabase: ServiceDB): Promise<{ id: string; na
 }
 
 async function decorateStores(supabase: ServiceDB, raw: { id: string; owner_id: string; name: string; slug: string; status: "draft" | "published"; created_at: string; whatsapp: string | null }[]): Promise<AdminStoreRow[]> {
-  const owners = await loadOwnerNames(supabase, raw.map((s) => s.owner_id));
-  const productRefs = await supabase.from("products").select("id,store_id");
-  const orderRefs = await supabase.from("orders").select("id,store_id");
+  const [owners, productRefs, orderRefs] = await Promise.all([
+    loadOwnerNames(supabase, raw.map((s) => s.owner_id)),
+    supabase.from("products").select("id,store_id"),
+    supabase.from("orders").select("id,store_id"),
+  ]);
   const productCount = new Map<string, number>();
   for (const p of productRefs.data ?? []) productCount.set(p.store_id, (productCount.get(p.store_id) ?? 0) + 1);
   const orderCount = new Map<string, number>();

@@ -88,7 +88,8 @@ export function AppearanceEditor({ storeId, initialPreset, initialOverrides, ini
         <input type="hidden" name="presetId" value={preset} />
         <input type="hidden" name="overrides" value={JSON.stringify(config.overrides ?? {})} />
         <input type="hidden" name="layout" value={JSON.stringify(config.layout)} />
-        <input ref={resetFlag} type="hidden" name="reset" defaultValue="false" />
+        {/* Not named "reset": a field with that name hides form.reset(), which React calls after the action. */}
+        <input ref={resetFlag} type="hidden" name="resetTheme" defaultValue="false" />
         <p className="vf-eyebrow">Apparence</p>
         <h1>Le style de votre boutique</h1>
         <p className="muted">Touchez un thème : l’aperçu change tout de suite. Enregistrez pour l’appliquer à votre boutique.</p>

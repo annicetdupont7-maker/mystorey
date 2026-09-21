@@ -1,3 +1,4 @@
+import { APP_TIME_ZONE } from "@/lib/time";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getOrders } from "@/features/orders/data";
@@ -13,7 +14,7 @@ import { ORDER_FILTERS, isOrderFilter, isPendingStatus, type OrderFilter, type O
 import { formatPrice } from "@/features/storefront/storefront-types";
 export const dynamic = "force-dynamic";
 
-const dateTime = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+const dateTime = new Intl.DateTimeFormat("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: APP_TIME_ZONE });
 const waDigits = (raw: string) => raw.replace(/\D/g, "");
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {

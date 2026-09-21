@@ -176,7 +176,7 @@ a.auth-orb { text-decoration: none; }
 }
 
 /* ---------- Variantes (sur la fiche produit) ---------- */
-#variants { scroll-margin-top: 1rem; margin-top: 1rem; }
+#variants { scroll-margin-top: 1rem; }
 
 /* ---------- Apparence ---------- */
 .theme-cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; margin: 1rem 0; padding: 0; border: 0; }
@@ -391,3 +391,7 @@ a.auth-orb { text-decoration: none; }
   #apercu { scroll-margin-top: .5rem; }
 }
 .launch-ready .share-trigger { min-height: 2.9rem; padding-inline: 1.1rem; border-color: var(--brand); background: var(--brand); color: #fff; font-weight: 800; }
+/* The variants live on the product page, right under the product form, as their own card. */
+.pf { padding-bottom: 1.5rem; }
+#variants { max-width: 1080px; margin: 1rem auto 2rem; padding: 1.1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); }
+#variants h2 { margin-top: 0; font-size: 1.05rem; }

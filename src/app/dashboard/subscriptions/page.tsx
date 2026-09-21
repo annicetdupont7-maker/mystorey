@@ -1,3 +1,4 @@
+import { APP_TIME_ZONE } from "@/lib/time";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getMyFirstStore } from "@/features/stores/data";
@@ -73,7 +74,7 @@ export default async function SubscriptionsPage() {
 
         {rawStatus && <span className="subscription-status-label">Statut : {STATUS_LABELS[rawStatus] ?? rawStatus}</span>}
         {expiresAt && subscriptionStatus.plan.id !== "free" && (
-          <span className="subscription-status-label">Renouvellement le {new Date(expiresAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</span>
+          <span className="subscription-status-label">Renouvellement le {new Date(expiresAt).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric", timeZone: APP_TIME_ZONE })}</span>
         )}
       </div>
 
