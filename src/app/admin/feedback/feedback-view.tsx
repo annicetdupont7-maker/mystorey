@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { useActionState, useEffect, useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { Mail, MessageCircle, Store } from "lucide-react";
 import { updateFeedbackStatus, type AdminActionState } from "@/features/admin/actions";
 import { FEEDBACK_KIND_LABELS, FEEDBACK_STATUS_LABELS, type FeedbackKind, type FeedbackStatus } from "@/features/feedback/schemas";
@@ -34,16 +34,15 @@ export function FeedbackView({ rows }: { rows: AdminFeedbackRow[] }) {
         <div className="empty-state"><h2>Rien à traiter</h2><p>Les messages envoyés depuis « Aide &amp; suggestions » apparaissent ici.</p></div>
       ) : (
         <ul className="admin-feedback-list">
-          {visible.map((row) => <FeedbackItem key={row.id} row={row} onSaved={() => setRecent((ids) => ids.includes(row.id) ? ids : [...ids, row.id])} />)}
+          {visible.map((row) => <FeedbackItem key={row.id} row={row} onSubmit={() => setRecent((ids) => ids.includes(row.id) ? ids : [...ids, row.id])} />)}
         </ul>
       )}
     </section>
   );
 }
 
-function FeedbackItem({ row, onSaved }: { row: AdminFeedbackRow; onSaved: () => void }) {
+function FeedbackItem({ row, onSubmit }: { row: AdminFeedbackRow; onSubmit: () => void }) {
   const [state, action, pending] = useActionState<AdminActionState, FormData>(updateFeedbackStatus, {});
-  useEffect(() => { if (state.success) onSaved(); }, [state, onSaved]);
   const phone = digits(row.contact).length >= 8 ? digits(row.contact) : row.storeWhatsapp ? digits(row.storeWhatsapp) : "";
   const email = row.contact.includes("@") ? row.contact : row.userEmail;
   const reply = `Bonjour ${row.userName}, ici l’équipe MYSTOREY à propos de votre message : « ${row.message.slice(0, 120)}${row.message.length > 120 ? "…" : ""} »`;
@@ -64,7 +63,8 @@ function FeedbackItem({ row, onSaved }: { row: AdminFeedbackRow; onSaved: () => 
         {phone && <a className="vf-button vf-button--sm" href={`https://wa.me/${phone}?text=${encodeURIComponent(reply)}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={14} aria-hidden="true" /> Répondre sur WhatsApp</a>}
         {email && <a className="vf-button vf-button--ghost vf-button--sm" href={`mailto:${email}?subject=${encodeURIComponent("MYSTOREY — votre message")}&body=${encodeURIComponent(reply)}`}><Mail size={14} aria-hidden="true" /> Répondre par email</a>}
       </div>
-      <form action={action} className="admin-feedback-form">
+      {/* Kept on screen from the moment it is sent: the new status may move it out of the current filter. */}
+      <form action={action} onSubmit={onSubmit} className="admin-feedback-form">
         <input type="hidden" name="id" value={row.id} />
         <label className="field">
           <span>Statut</span>
