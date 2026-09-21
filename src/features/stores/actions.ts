@@ -1,5 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { publishBlockers } from "./launch";
 import { onboardingSchema, storeIdentitySchema, storeSettingsSchema } from "./schemas";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { storeThemeSchema } from "@/features/themes/theme-schema";
@@ -23,10 +25,42 @@ async function uploadStoreImage(supabase:StoreClient,file:File,userId:string,pur
   return {ok:true,url:supabase.storage.from("store-images").getPublicUrl(path).data.publicUrl,path};
 }
 function storeImagePathFromPublicUrl(url:string|null){const marker="/storage/v1/object/public/store-images/";if(!url)return null;const index=url.indexOf(marker);return index>=0?decodeURIComponent(url.slice(index+marker.length)):null;}
-export async function createStore(_:StoreActionState,formData:FormData):Promise<StoreActionState>{const parsed=onboardingSchema.safeParse({name:formData.get("name"),slug:formData.get("slug"),presetId:formData.get("presetId"),whatsapp:String(formData.get("whatsapp")??"")});if(!parsed.success)return {error:"Vérifiez les informations de votre boutique.",fieldErrors:parsed.error.flatten().fieldErrors};const supabase=await createSupabaseServerClient();const {data,error}=await supabase.rpc("create_store_with_theme",{store_name:parsed.data.name,store_slug:parsed.data.slug,theme_preset:parsed.data.presetId});if(error)return {error:error.code==="23505"?"Cette adresse de boutique est déjà utilisée. Choisissez-en une autre.":"Impossible de créer la boutique. Réessayez."};const whatsapp=parsed.data.whatsapp.trim();if(whatsapp){const {error:updateError}=await supabase.from("stores").update({whatsapp}).eq("id",data?.id);if(updateError)return {error:"Boutique créée, mais impossible d’enregistrer votre numéro WhatsApp."};}redirect("/dashboard");}
+export async function createStore(_:StoreActionState,formData:FormData):Promise<StoreActionState>{const parsed=onboardingSchema.safeParse({name:formData.get("name"),slug:formData.get("slug"),presetId:formData.get("presetId"),whatsapp:String(formData.get("whatsapp")??"")});if(!parsed.success)return {error:"Vérifiez les informations de votre boutique.",fieldErrors:parsed.error.flatten().fieldErrors};const supabase=await createSupabaseServerClient();const {data,error}=await supabase.rpc("create_store_with_theme",{store_name:parsed.data.name,store_slug:parsed.data.slug,theme_preset:parsed.data.presetId});if(error)return {error:error.code==="23505"?"Cette adresse de boutique est déjà utilisée. Choisissez-en une autre.":"Impossible de créer la boutique. Réessayez."};const whatsapp=parsed.data.whatsapp.trim();if(whatsapp){const {error:updateError}=await supabase.from("stores").update({whatsapp}).eq("id",data?.id);if(updateError)return {error:"Boutique créée, mais impossible d’enregistrer votre numéro WhatsApp."};}redirect("/dashboard?welcome=1");}
 export async function saveStoreSettings(_:StoreActionState,formData:FormData):Promise<StoreActionState>{const id=String(formData.get("storeId")||"");const parsed=storeSettingsSchema.safeParse({name:formData.get("name"),description:String(formData.get("description")??""),whatsapp:String(formData.get("whatsapp")??"")});if(!parsed.success)return {error:"Vérifiez les informations de votre boutique.",fieldErrors:parsed.error.flatten().fieldErrors};const supabase=await createSupabaseServerClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return {error:"Session expirée. Reconnectez-vous."};if(!(await confirmStoreOwner(supabase,id,user.id)))return {error:"Boutique introuvable."};const {error}=await supabase.from("stores").update({name:parsed.data.name,description:parsed.data.description,whatsapp:parsed.data.whatsapp}).eq("id",id).eq("owner_id",user.id);if(error)return {error:"Impossible d’enregistrer les paramètres."};return {success:"Paramètres enregistrés."};}
-export async function saveTheme(_:StoreActionState,formData:FormData):Promise<StoreActionState>{const id=String(formData.get("storeId")||"");const reset=formData.get("reset")==="true";let overrides:unknown={},layout:unknown={};if(!reset){try{overrides=JSON.parse(String(formData.get("overrides")||"{}"));layout=JSON.parse(String(formData.get("layout")||"{}"));}catch{return {error:"Configuration de thème invalide."};}}const parsed=storeThemeSchema.safeParse({preset_id:formData.get("presetId"),overrides,layout,version:1});if(!parsed.success)return {error:"Configuration de thème invalide."};const supabase=await createSupabaseServerClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return {error:"Session expirée. Reconnectez-vous."};if(!(await confirmStoreOwner(supabase,id,user.id)))return {error:"Boutique introuvable."};const {error}=await supabase.from("store_themes").update({preset_id:parsed.data.preset_id,overrides:parsed.data.overrides??{},layout:parsed.data.layout??{}}).eq("store_id",id);if(error)return {error:"Impossible d’enregistrer le thème."};if(formData.get("publish")==="true"){const {error:publishError}=await supabase.from("stores").update({status:"published"}).eq("id",id);if(publishError)return {error:"Thème enregistré, mais publication impossible."};}return {success:formData.get("publish")==="true"?"Thème publié.":reset?"Thème réinitialisé.":"Aperçu enregistré.",successId:Date.now()};}
-export async function publishStore(storeId:string){const supabase=await createSupabaseServerClient();const {data:{user}}=await supabase.auth.getUser();if(!user||!(await confirmStoreOwner(supabase,storeId,user.id)))throw new Error("Boutique introuvable.");const {error}=await supabase.from("stores").update({status:"published"}).eq("id",storeId).eq("owner_id",user.id);if(error)throw new Error("Impossible de publier la boutique.");}
+export async function saveTheme(_:StoreActionState,formData:FormData):Promise<StoreActionState>{const id=String(formData.get("storeId")||"");const reset=formData.get("reset")==="true";let overrides:unknown={},layout:unknown={};if(!reset){try{overrides=JSON.parse(String(formData.get("overrides")||"{}"));layout=JSON.parse(String(formData.get("layout")||"{}"));}catch{return {error:"Configuration de thème invalide."};}}const parsed=storeThemeSchema.safeParse({preset_id:formData.get("presetId"),overrides,layout,version:1});if(!parsed.success)return {error:"Configuration de thème invalide."};const supabase=await createSupabaseServerClient();const {data:{user}}=await supabase.auth.getUser();if(!user)return {error:"Session expirée. Reconnectez-vous."};if(!(await confirmStoreOwner(supabase,id,user.id)))return {error:"Boutique introuvable."};const {error}=await supabase.from("store_themes").update({preset_id:parsed.data.preset_id,overrides:parsed.data.overrides??{},layout:parsed.data.layout??{}}).eq("store_id",id);if(error)return {error:"Impossible d’enregistrer le thème."};if(formData.get("publish")==="true"){const blockers=await blockersFor(supabase,id);if(blockers.length)return {error:`Thème enregistré. Pour publier : ${blockers.join(" ")}`};const {error:publishError}=await supabase.from("stores").update({status:"published"}).eq("id",id).eq("owner_id",user.id);if(publishError)return {error:"Thème enregistré, mais publication impossible."};revalidatePath("/dashboard");}return {success:formData.get("publish")==="true"?"Thème publié.":reset?"Thème réinitialisé.":"Thème enregistré ✓",successId:Date.now()};}
+/** What still blocks publication, computed from the database, never from the form. */
+async function blockersFor(supabase:StoreClient,storeId:string){
+  const [{data:store},{count:productCount},{count:publishedProductCount}]=await Promise.all([
+    supabase.from("stores").select("whatsapp").eq("id",storeId).maybeSingle(),
+    supabase.from("products").select("id",{count:"exact",head:true}).eq("store_id",storeId),
+    supabase.from("products").select("id",{count:"exact",head:true}).eq("store_id",storeId).eq("is_available",true),
+  ]);
+  return publishBlockers({whatsapp:store?.whatsapp,productCount:productCount??0,publishedProductCount:publishedProductCount??0});
+}
+export type PublishState={error?:string;blockers?:string[];success?:string};
+export async function publishStoreAction(_:PublishState,formData:FormData):Promise<PublishState>{
+  const storeId=String(formData.get("storeId")||"");
+  const supabase=await createSupabaseServerClient();
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user)return {error:"Session expirée. Reconnectez-vous."};
+  if(!(await confirmStoreOwner(supabase,storeId,user.id)))return {error:"Boutique introuvable."};
+  const blockers=await blockersFor(supabase,storeId);
+  if(blockers.length)return {error:"Encore une petite étape avant de publier :",blockers};
+  const {error}=await supabase.from("stores").update({status:"published"}).eq("id",storeId).eq("owner_id",user.id);
+  if(error)return {error:"Impossible de publier la boutique pour le moment. Réessayez."};
+  revalidatePath("/dashboard","layout");
+  return {success:"Votre boutique est en ligne 🎉"};
+}
+export async function unpublishStoreAction(_:PublishState,formData:FormData):Promise<PublishState>{
+  const storeId=String(formData.get("storeId")||"");
+  const supabase=await createSupabaseServerClient();
+  const {data:{user}}=await supabase.auth.getUser();
+  if(!user)return {error:"Session expirée. Reconnectez-vous."};
+  const {error}=await supabase.from("stores").update({status:"draft"}).eq("id",storeId).eq("owner_id",user.id);
+  if(error)return {error:"Impossible de mettre la boutique hors ligne. Réessayez."};
+  revalidatePath("/dashboard","layout");
+  return {success:"Votre boutique est hors ligne. Vos clientes voient une page d’attente jusqu’à la prochaine publication."};
+}
 export async function deleteStore(_:StoreActionState,formData:FormData):Promise<StoreActionState>{
   const storeId=String(formData.get("storeId")||"");
   if(formData.get("confirmation")!=="SUPPRIMER")return {error:"Tapez SUPPRIMER pour confirmer la suppression."};

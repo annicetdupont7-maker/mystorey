@@ -1,4 +1,6 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { originFromHeaders } from "@/lib/app-url";
 import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { AppearanceEditor } from "@/features/stores/components/appearance-editor";
@@ -18,7 +20,7 @@ export default async function AppearancePage() {
 
   return (
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
-      <AppearanceEditor storeId={store.id} initialPreset={(theme?.preset_id ?? "modern") as PresetId} initialOverrides={theme?.overrides} initialLayout={theme?.layout} storeName={store.name} storeSlogan={store.slogan ?? undefined} storeDescription={store.description ?? undefined} storeLogoUrl={store.logo_url} storeCoverUrl={store.cover_url} storeSlug={store.slug} storeStatus={store.status} products={(productsResult?.products ?? []).filter((product) => product.is_available).map(toProductView)} whatsapp={store.whatsapp} />
+      <AppearanceEditor storeId={store.id} initialPreset={(theme?.preset_id ?? "modern") as PresetId} initialOverrides={theme?.overrides} initialLayout={theme?.layout} storeName={store.name} storeSlogan={store.slogan ?? undefined} storeDescription={store.description ?? undefined} storeLogoUrl={store.logo_url} storeCoverUrl={store.cover_url} storeSlug={store.slug} storeStatus={store.status} products={(productsResult?.products ?? []).filter((product) => product.is_available).map(toProductView)} whatsapp={store.whatsapp} shareUrl={`${originFromHeaders(await headers())}/store/${store.slug}`} />
     </DashboardShell>
   );
 }

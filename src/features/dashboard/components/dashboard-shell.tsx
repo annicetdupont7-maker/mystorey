@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { BadgeCheck, Bell, BarChart3, ChevronDown, ClipboardList, CreditCard, LayoutGrid, Menu, Megaphone, Search, Settings, Sparkles, Store, Tags, Users, X } from "lucide-react";
+import { BadgeCheck, Bell, BarChart3, ChevronDown, ClipboardList, CreditCard, Home, LayoutGrid, LifeBuoy, Menu, Megaphone, Palette, Search, Settings, Sparkles, Store, Tags, Users, X } from "lucide-react";
 import { logout } from "@/features/auth/actions";
 import { StoreShareSheet } from "@/features/sharing/components/share-sheet";
 
@@ -14,9 +14,17 @@ const NAV = [
   { href: "/dashboard/orders", label: "Commandes", icon: ClipboardList },
 ];
 
+const TABS = [
+  { href: "/dashboard", label: "Accueil", icon: Home },
+  { href: "/dashboard/products", label: "Produits", icon: LayoutGrid },
+  { href: "/dashboard/orders", label: "Commandes", icon: ClipboardList },
+  { href: "/dashboard/storefront/appearance", label: "Boutique", icon: Palette, match: "/dashboard/storefront" },
+];
+
 export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUrl, storeDescription, children }: { name: string; storeName: string; storeSlug?: string; status: string; storeLogoUrl?: string; storeDescription?: string; children: React.ReactNode }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isHome = pathname === "/dashboard";
   const storeUrl = storeSlug ? `/store/${storeSlug}` : null;
   // Fall back to the shop's own initial rather than a letter from the old product name.
   const initialsSource = name?.trim() || storeName?.trim() || "M";
@@ -43,7 +51,7 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
             <h2 className="store-identity-name">{storeName || "Ma boutique"}</h2>
             {storeDescription && <p className="store-identity-description">{storeDescription}</p>}
             <span className={`store-identity-status status--${status}`}>
-              {status === "published" ? "🟢 En ligne" : "⚪ Brouillon"}
+              {status === "published" ? "🟢 En ligne" : "⚪ Pas encore publiée"}
             </span>
           </div>
 
@@ -117,6 +125,10 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
                 <Settings size={14} aria-hidden="true" />
                 Paramètres
               </Link>
+              <Link href="/dashboard/help" className={`sidebar-link${pathname.startsWith("/dashboard/help") ? " is-active" : ""}`} aria-current={pathname.startsWith("/dashboard/help") ? "page" : undefined} onClick={() => setSidebarOpen(false)}>
+                <LifeBuoy size={14} aria-hidden="true" />
+                Aide &amp; suggestions
+              </Link>
             </div>
           </div>
 
@@ -136,18 +148,19 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
               <strong>{name || "Vendeur"}</strong>
               <span>Vendeur</span>
             </div>
-            <button type="button" className="dashboard-user-chevron" aria-label="Ouvrir le menu profil">
-              <ChevronDown size={14} aria-hidden="true" />
-            </button>
+            {/* This chevron used to open nothing. The sidebar is also the phone menu, so
+                it now carries the one account action a seller needs there. */}
+            <form action={logout}><button type="submit" className="dashboard-user-logout">Se déconnecter</button></form>
           </div>
         </aside>
 
         <div className="dashboard-main">
-          <header className="dashboard-header">
+          <header className={`dashboard-header${isHome ? "" : " dashboard-header--compact"}`}>
             <div className="dashboard-header-copy">
-              <p className="vf-eyebrow">Mon espace MYSTOREY</p>
-              <h1>Bonjour {name || "à vous"} 👋</h1>
-              <p className="dashboard-subtitle">Votre boutique, vos produits, vos ventes. Tout est là pour avancer sereinement.</p>
+              <p className="vf-eyebrow">{isHome ? "Mon espace MYSTOREY" : storeName}</p>
+              {/* The greeting is for the home screen; task screens keep their own title. */}
+              {isHome ? <h1>Bonjour {name || "à vous"} 👋</h1> : null}
+              <p className="dashboard-subtitle">{status === "published" ? "Votre boutique est en ligne." : "Votre boutique n’est pas encore publiée."}</p>
             </div>
 
             <div className="dashboard-header-actions">
@@ -160,8 +173,8 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
                 </div>
                 <ChevronDown size={14} aria-hidden="true" />
               </Link>
-              {storeUrl && <Link href={storeUrl} target="_blank" rel="noopener noreferrer" className="dashboard-header-store-link"><Store size={15} aria-hidden="true" /> Voir ma boutique</Link>}
-              {storeUrl && <StoreShareSheet storeName={storeName} storeSlug={storeSlug as string} />}
+              {storeUrl && <Link href={storeUrl} target="_blank" rel="noopener noreferrer" className="dashboard-header-store-link"><Store size={15} aria-hidden="true" /> {status === "published" ? "Voir ma boutique" : "Aperçu de ma boutique"}</Link>}
+              {storeUrl && status === "published" && <StoreShareSheet storeName={storeName} storeSlug={storeSlug as string} published />}
               <form action={logout}><button className="text-button">Se déconnecter</button></form>
             </div>
           </header>
@@ -169,6 +182,23 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
           <div className="dashboard-main-inner">{children}</div>
         </div>
       </div>
+      {/* Thumb navigation on phones: the four places a seller goes every day, plus the menu. */}
+      <nav className="dashboard-tabbar" aria-label="Navigation rapide">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          const active = tab.href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(tab.match ?? tab.href);
+          return (
+            <Link key={tab.href} href={tab.href} className={`dashboard-tab${active ? " is-active" : ""}`} aria-current={active ? "page" : undefined}>
+              <Icon size={20} aria-hidden="true" />
+              <span>{tab.label}</span>
+            </Link>
+          );
+        })}
+        <button type="button" className="dashboard-tab" onClick={() => setSidebarOpen(true)} aria-expanded={sidebarOpen}>
+          <Menu size={20} aria-hidden="true" />
+          <span>Plus</span>
+        </button>
+      </nav>
     </main>
   );
 }

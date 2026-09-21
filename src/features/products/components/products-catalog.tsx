@@ -2,13 +2,14 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { ArrowRight, Edit2, PackageOpen, Search, Star, Tag } from "lucide-react";
+import { ArrowRight, Edit2, Eye, EyeOff, PackageOpen, Search, Star, Tag } from "lucide-react";
 import { formatPrice } from "@/features/storefront/storefront-types";
 import type { ProductWithFlags } from "../data";
 import { DeleteProductButton } from "./delete-product-button";
+import { toggleProductAvailability } from "../actions";
 import { ShareSheet } from "@/features/sharing/components/share-sheet";
 
-type ProductItem = ProductWithFlags & { orders: number; revenue: number };
+type ProductItem = ProductWithFlags & { orders: number; revenue: number; stock?: number | null };
 type Filter = "all" | "available" | "hidden" | "featured";
 type Sort = "recent" | "price-asc" | "price-desc" | "orders";
 type CategoryRef = { id: string; name: string };
@@ -54,7 +55,7 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
       <section className="empty-state">
         <span className="empty-state-icon"><PackageOpen size={28} aria-hidden="true" /></span>
         <h2>Votre boutique commence ici.</h2>
-        <p>Ajoutez votre premier produit pour commencer à la construire. Une belle photo et un prix clair suffisent pour démarrer.</p>
+        <p>Ajoutez votre premier produit : une photo prise avec votre téléphone, un nom et un prix suffisent. Vous pourrez tout modifier ensuite.</p>
         <Link className="vf-button" href="/dashboard/products/new"><ArrowRight size={16} /> Ajouter mon premier produit</Link>
       </section>
     );
@@ -69,8 +70,8 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
         </label>
         <select className="toolbar-select" value={filter} onChange={(e) => setFilter(e.target.value as Filter)} aria-label="Filtrer">
           <option value="all">Tous ({products.length})</option>
-          <option value="available">En vente</option>
-          <option value="hidden">Cachés</option>
+          <option value="available">Visibles</option>
+          <option value="hidden">Masqués</option>
           <option value="featured">Vedettes ({featuredCount})</option>
         </select>
         <select className="toolbar-select" value={sort} onChange={(e) => setSort(e.target.value as Sort)} aria-label="Trier">
@@ -112,7 +113,8 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
                   <div className="product-card-image-placeholder" aria-label="Image non disponible">📸</div>
                 )}
                 {p.is_featured && <div className="product-badge product-badge-featured" aria-label="Produit vedette"><Star size={12} fill="currentColor" /> Vedette</div>}
-                {!p.is_available && <div className="product-badge product-badge-hidden" aria-label="Produit caché">Caché</div>}
+                {!p.is_available && <div className="product-badge product-badge-hidden" aria-label="Produit masqué">Masqué</div>}
+                {p.stock === 0 && <div className="product-badge product-badge-hidden" aria-label="Épuisé">Épuisé</div>}
               </div>
 
               {/* Product Info */}
@@ -128,7 +130,7 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
                 <div className="product-card-footer">
                   <div>
                     <div className="product-card-price">{formatPrice(p.price)}</div>
-                    <p className="product-card-stock">Stock non géré</p>
+                    {p.stock !== undefined && <p className="product-card-stock">{p.stock === null ? "Stock non suivi" : p.stock === 0 ? "Épuisé" : `${p.stock} en stock`}</p>}
                     {p.orders > 0 && <p className="product-card-stats">{p.orders} commande{p.orders > 1 ? "s" : ""} · {formatPrice(p.revenue)}</p>}
                   </div>
                 </div>
@@ -136,6 +138,13 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
 
               {/* Actions - Hidden until hover */}
               <div className="product-card-actions" role="group" aria-label="Actions du produit">
+                <form action={toggleProductAvailability}>
+                  <input type="hidden" name="id" value={p.id} />
+                  <input type="hidden" name="next" value={String(!p.is_available)} />
+                  <button type="submit" className={`product-toggle${p.is_available ? "" : " is-hidden"}`} title={p.is_available ? "Masquer de la boutique" : "Rendre visible dans la boutique"}>
+                    {p.is_available ? <><EyeOff size={14} aria-hidden="true" /> Masquer</> : <><Eye size={14} aria-hidden="true" /> Publier</>}
+                  </button>
+                </form>
                 <ShareSheet product={{ id: p.id, name: p.name, price: p.price, imageUrl: p.image_url, available: p.is_available }} storeSlug={storeSlug} label="Partager" />
                 <Link href={`/dashboard/products/${p.id}`} className="product-action-button" aria-label={`Modifier le produit ${p.name}`} title={`Modifier ${p.name}`}>
                   <Edit2 size={14} />

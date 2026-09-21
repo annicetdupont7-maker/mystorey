@@ -1,18 +1,33 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import heroVisual from "../../public/images/new-image-landing.webp";
 import "./LandingPage.css";
 
+export const metadata: Metadata = {
+  title: { absolute: "MYSTOREY — Votre boutique en ligne en un seul lien" },
+  alternates: { canonical: "/" },
+};
+
+// Everything on this page is a capability that exists today. No testimonials, no
+// numbers of users, no "X% more sales": MYSTOREY has none of those yet, so it shows
+// the problem it solves and exactly how.
+const CLIENT_QUESTIONS = [
+  "C’est combien ?",
+  "Envoie-moi encore la photo stp",
+  "Tu as quelle couleur ?",
+  "C’est encore disponible ?",
+  "Il y a ma taille ?",
+  "Comment je commande ?",
+];
+
+const CHAT_TIMES = ["09:12", "09:14", "10:03", "11:27", "13:45", "16:08"];
+
 export default function LandingPage() {
   return (
     <div className="vendoflow-page">
-
-      {/* ===================================================
-          1. HEADER / NAVIGATION
-          ================================================= */}
       <header className="vf-navbar">
         <div className="vf-nav-inner">
-
           <Link href="/" className="vf-brand">
             <span className="vf-brand-mark" aria-hidden="true">M</span>
             <span className="vf-brand-name">MYSTOREY</span>
@@ -27,45 +42,34 @@ export default function LandingPage() {
 
           <div className="vf-nav-menu">
             <nav className="vf-nav-links">
-              <Link href="#fonctionnalites">Fonctionnalités</Link>
+              <Link href="#probleme">Pourquoi</Link>
               <Link href="#comment-ca-marche">Comment ça marche</Link>
-              <Link href="#temoignages">Témoignages</Link>
-              <Link href="#faq">Ressources</Link>
+              <Link href="#tarifs">Tarifs</Link>
+              <Link href="#faq">Questions</Link>
             </nav>
-
             <div className="vf-nav-actions">
-              <Link href="/login" className="vf-login-link">
-                Se connecter
-              </Link>
-              <Link href="/register" className="vf-btn-cta">
-                Créer ma boutique <span>&rarr;</span>
-              </Link>
+              <Link href="/login" className="vf-login-link">Se connecter</Link>
+              <Link href="/register" className="vf-btn-cta">Créer ma boutique <span>&rarr;</span></Link>
             </div>
           </div>
-
         </div>
       </header>
 
-
-      {/* ===================================================
-          2. HERO — SECTION PRINCIPALE
-          =================================================== */}
+      {/* 1. Hero — the promise, in the seller's words */}
       <section className="vf-hero">
         <div className="vf-container vf-hero-grid">
           <div className="vf-hero-copy">
-            <div className="vf-hero-badge"><span className="vf-kicker">YOUR SHOP. YOUR STORY.</span><span>PENSÉ POUR LES VENDEUSES AMBITIEUSES</span></div>
-            <h1 className="vf-hero-title">Votre boutique mérite<br /><span className="vf-highlight">son propre espace.</span></h1>
-            <p className="vf-hero-subtitle">MYSTOREY aide les vendeuses à transformer leurs produits et leurs commandes WhatsApp en une boutique en ligne claire, professionnelle et simple à gérer.</p>
-            <div className="vf-hero-actions"><Link href="/register" className="vf-btn-primary">Créer ma boutique gratuitement <span aria-hidden="true">→</span></Link><a href="#comment-ca-marche" className="vf-btn-secondary">Découvrir comment ça marche</a></div>
-            <div className="vf-hero-trust"><span>✓ Sans carte bancaire pour commencer</span><span>✓ Pensé pour le mobile</span></div>
+            <div className="vf-hero-badge"><span className="vf-kicker">POUR LES VENDEUSES</span><span>WHATSAPP · INSTAGRAM · TIKTOK</span></div>
+            <h1 className="vf-hero-title">Arrêtez de renvoyer<br />les mêmes photos.<br /><span className="vf-highlight">Envoyez votre boutique.</span></h1>
+            <p className="vf-hero-subtitle">Vos produits, vos prix et vos couleurs réunis derrière un seul lien. Vos clientes choisissent seules, commandent en quelques secondes, et la commande complète arrive sur votre WhatsApp.</p>
+            <div className="vf-hero-actions">
+              <Link href="/register" className="vf-btn-primary">Créer ma boutique gratuite <span aria-hidden="true">→</span></Link>
+              <a href="#comment-ca-marche" className="vf-btn-secondary">Voir comment ça marche</a>
+            </div>
+            <div className="vf-hero-trust"><span>✓ Gratuit jusqu’à 10 produits</span><span>✓ Sans carte bancaire</span><span>✓ Tout se fait depuis le téléphone</span></div>
           </div>
-          {/* A real photo of the kind of goods our sellers actually sell, instead of the
-              CSS-drawn fake browser window that was here. The floating badges state the
-              value proposition in four words: one link, orders in WhatsApp. */}
           <div className="vf-hero-image-wrapper">
-            {/* The hero is the LCP element, so it is preloaded. `preload` replaces the
-                `priority` prop, deprecated in Next 16. Imported statically so the
-                dimensions and the blur placeholder come from the file itself. */}
+            {/* The hero is the LCP element, so it is preloaded. */}
             <Image
               className="vf-hero-img"
               src={heroVisual}
@@ -75,535 +79,269 @@ export default function LandingPage() {
               preload
             />
             <div className="vf-float-badge vf-float-badge--stat">
-              <span className="vf-stat-arrow" aria-hidden="true">↗</span>
-              <span className="vf-float-text">
-                <strong>Un seul lien</strong>
-                <small>à partager partout</small>
-              </span>
+              <span className="vf-stat-arrow" aria-hidden="true">🔗</span>
+              <span className="vf-float-text"><strong>Un seul lien</strong><small>dans votre statut et votre bio</small></span>
             </div>
             <div className="vf-float-badge vf-float-badge--order">
               <span className="vf-float-icon" aria-hidden="true">💬</span>
-              <span className="vf-float-text">
-                <strong>Nouvelle commande</strong>
-                <small>reçue sur WhatsApp</small>
-              </span>
+              <span className="vf-float-text"><strong>Commande complète</strong><small>reçue sur WhatsApp</small></span>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* ===================================================
-          4. SECTION DE VOTRE IDÉE À VOS PREMIÈRES VENTES
-          ================================================= */}
-      <section id="comment-ca-marche" className="vf-section vf-section--steps">
-        <div className="vf-container">
-          <div className="vf-section-header">
-            <span className="vf-kicker">SIMPLE PAR NATURE</span>
-            <h2 className="vf-section-title">
-              De votre idée à vos premières<br />ventes.
-            </h2>
-            <p className="vf-section-lead">
-              Pas de jargon technique. Pas de journées perdues à tout configurer. Seulement les outils essentiels, au bon endroit.
-            </p>
-          </div>
-
-          <div className="vf-steps-card">
-            <div className="vf-step-item">
-              <span className="vf-step-num">01</span>
-              <h3>Créez votre vitrine</h3>
-              <p>Choisissez un style, ajoutez votre identité et publiez en quelques minutes.</p>
-            </div>
-
-            <div className="vf-step-item">
-              <span className="vf-step-num">02</span>
-              <h3>Ajoutez vos produits</h3>
-                    <p>Photos, prix, descriptions et disponibilité : votre catalogue prend vie simplement.</p>
-            </div>
-
-            <div className="vf-step-item">
-              <span className="vf-step-num">03</span>
-              <h3>Commencez à vendre</h3>
-              <p>Partagez votre lien, recevez vos commandes et suivez vos performances.</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ===================================================
-          5. SECTION PROBLÈME / SOLUTION
-          ================================================= */}
-      <section className="vf-section vf-section--problem">
+      {/* 2. The problem — messages every seller knows by heart */}
+      <section id="probleme" className="vf-section vf-section--problem">
         <div className="vf-container">
           <div className="vf-problem-grid">
             <div className="vf-problem-copy">
-              <span className="vf-kicker">LE CONSTAT</span>
-              <h2 className="vf-section-title">
-                Votre activité mérite mieux que des commandes dispersées.
-              </h2>
-              <p className="vf-section-lead">
-                Entre WhatsApp, les messages privés, les captures d’écran et les notes, il devient vite difficile de savoir qui a commandé quoi.
-              </p>
+              <span className="vf-kicker">VOUS CONNAISSEZ CES MESSAGES</span>
+              <h2 className="vf-section-title">Toute la journée, les mêmes questions.</h2>
+              <p className="vf-section-lead">Vous répondez, vous renvoyez les photos, vous redonnez les prix… et souvent, la cliente disparaît avant de commander. Pendant ce temps, les autres messages attendent.</p>
             </div>
-
-            <div className="vf-problem-card">
-              <ul className="vf-problem-list">
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Vous perdez du temps à confirmer les commandes.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Vos produits sont éparpillés entre plusieurs canaux.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Vos commandes arrivent dans plusieurs conversations.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Vos clients attendent une réponse rapide.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Vous voulez vendre en ligne sans devenir informaticien.</span>
-                </li>
-              </ul>
-              <div className="vf-problem-punchline">
-                <strong>MYSTOREY rassemble l’essentiel au même endroit.</strong>
-              </div>
+            <div className="vf-chat" aria-label="Exemple de conversation WhatsApp">
+              {CLIENT_QUESTIONS.map((question, index) => (
+                <p key={question} className="vf-chat-bubble">{question}<small>{CHAT_TIMES[index]}</small></p>
+              ))}
+              <p className="vf-chat-seen">… puis plus de nouvelles de la cliente.</p>
             </div>
           </div>
         </div>
       </section>
 
+      {/* 3. The answer */}
+      <section className="vf-section vf-section--solution">
+        <div className="vf-container">
+          <div className="vf-section-header">
+            <span className="vf-kicker">LA SOLUTION</span>
+            <h2 className="vf-section-title">Une seule réponse : votre lien.</h2>
+            <p className="vf-section-lead">Votre boutique MYSTOREY répond à votre place, jour et nuit. Vous gardez WhatsApp pour ce qui compte : confirmer et livrer.</p>
+          </div>
+          <div className="vf-compare">
+            <div className="vf-compare-col vf-compare-col--before">
+              <h3>Sans boutique</h3>
+              <ul>
+                <li>Vous renvoyez les photos une par une</li>
+                <li>« C’est combien ? » vingt fois par jour</li>
+                <li>Les commandes se perdent dans les discussions</li>
+                <li>Vous ne savez plus qui a payé, qui attend</li>
+              </ul>
+            </div>
+            <div className="vf-compare-col vf-compare-col--after">
+              <h3>Avec MYSTOREY</h3>
+              <ul>
+                <li>Toutes vos photos et vos prix, visibles d’un coup</li>
+                <li>Couleurs, tailles et stock affichés clairement</li>
+                <li>La cliente remplit son panier et vous envoie un récapitulatif complet sur WhatsApp</li>
+                <li>Chaque commande est rangée dans votre espace, avec son statut</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      {/* ===================================================
-          6. SECTION FONCTIONNALITÉS (BORDEAUX FONCÉ)
-          ================================================= */}
+      {/* 4. How it works — concrete, three steps */}
+      <section id="comment-ca-marche" className="vf-section vf-section--steps">
+        <div className="vf-container">
+          <div className="vf-section-header">
+            <span className="vf-kicker">COMMENT ÇA MARCHE</span>
+            <h2 className="vf-section-title">Votre boutique en ligne aujourd’hui.</h2>
+            <p className="vf-section-lead">Pas d’ordinateur, pas de technique. On vous guide à chaque étape.</p>
+          </div>
+          <div className="vf-steps-card">
+            <div className="vf-step-item">
+              <span className="vf-step-num">01</span>
+              <h3>Créez votre boutique</h3>
+              <p>Son nom, votre lien, un style parmi nos thèmes, votre numéro WhatsApp. C’est tout.</p>
+            </div>
+            <div className="vf-step-item">
+              <span className="vf-step-num">02</span>
+              <h3>Ajoutez vos produits</h3>
+              <p>Une photo prise avec votre téléphone, un nom, un prix. Ajoutez les couleurs et les tailles si besoin.</p>
+            </div>
+            <div className="vf-step-item">
+              <span className="vf-step-num">03</span>
+              <h3>Partagez votre lien</h3>
+              <p>Dans votre statut WhatsApp, votre bio Instagram ou TikTok. Les commandes arrivent sur WhatsApp et dans votre tableau de bord.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. What is included — only what exists */}
       <section id="fonctionnalites" className="vf-section vf-section--features-dark">
         <div className="vf-container">
           <div className="vf-section-header vf-section-header--light">
-            <span className="vf-kicker vf-kicker--light">FONCTIONNALITÉS</span>
-            <h2 className="vf-section-title vf-section-title--light">
-              Une boutique simple.<br />Un business plus fluide.
-            </h2>
-            <p className="vf-section-lead vf-section-lead--light">
-              Concentrez-vous sur vos produits et vos clientes. MYSTOREY s’occupe de simplifier le reste.
-            </p>
+            <span className="vf-kicker vf-kicker--light">INCLUS DÈS LE PLAN GRATUIT</span>
+            <h2 className="vf-section-title vf-section-title--light">Tout ce qu’il faut pour vendre.<br />Rien de compliqué.</h2>
           </div>
-
           <div className="vf-features-grid">
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#127912;</div>
-              <h3>Boutique personnalisée</h3>
-              <p>Une vitrine professionnelle qui s’adapte à votre marque, sans code.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">🎨</div>
+              <h3>Une boutique à votre image</h3>
+              <p>Votre nom, votre logo, vos couleurs. Plusieurs thèmes prêts à l’emploi.</p>
             </div>
-
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#128172;</div>
-              <h3>WhatsApp intégré</h3>
-              <p>Facilitez les échanges avec vos clients et gardez vos conversations utiles.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">📸</div>
+              <h3>Photos, couleurs, tailles</h3>
+              <p>Plusieurs photos par produit, et un seul produit pour toutes ses couleurs.</p>
             </div>
-
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#128230;</div>
-              <h3>Gestion des commandes</h3>
-              <p>Visualisez les nouvelles commandes et leur statut depuis un seul espace.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">💬</div>
+              <h3>Commandes sur WhatsApp</h3>
+              <p>La cliente valide son panier : vous recevez produits, quantités, total et adresse.</p>
             </div>
-
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#128200;</div>
-              <h3>Suivi de l’activité</h3>
-              <p>Gardez une vue claire sur vos ventes et les performances de votre boutique.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">📦</div>
+              <h3>Suivi des commandes</h3>
+              <p>Confirmée, en préparation, en livraison, livrée : vous savez où en est chaque commande.</p>
             </div>
-
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#128666;</div>
-              <h3>Commandes organisées</h3>
-              <p>Suivez les informations importantes liées à vos expéditions.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">🔗</div>
+              <h3>Lien et QR code</h3>
+              <p>À partager partout, ou à imprimer pour votre stand et vos emballages.</p>
             </div>
-
             <div className="vf-feature-box">
-              <div className="vf-feature-icon-bubble" aria-hidden="true">&#10024;</div>
-              <h3>Votre identité</h3>
-              <p>Couleurs, visuels et présentation : votre boutique vous ressemble.</p>
+              <div className="vf-feature-icon-bubble" aria-hidden="true">🤝</div>
+              <h3>Une équipe qui vous répond</h3>
+              <p>Un souci, une question ? Écrivez-nous depuis votre espace, rubrique « Aide ».</p>
             </div>
           </div>
         </div>
       </section>
 
-
-      {/* ===================================================
-          7. SECTION POURQUOI MYSTOREY
-          ================================================= */}
-      <section className="vf-section vf-section--why">
-        <div className="vf-container">
-          <div className="vf-why-grid">
-            <div className="vf-why-left">
-              <span className="vf-kicker">POURQUOI MYSTOREY ?</span>
-              <h2 className="vf-section-title">
-                Vous n’avez pas besoin de plus de complexité.
-              </h2>
-              <p className="vf-section-lead">
-                Vous avez besoin d’un outil qui vous aide à vendre, pas d’un logiciel qui vous oblige à devenir expert.
-              </p>
-
-              <ul className="vf-why-list">
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Une prise en main pensée pour les entrepreneurs.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Une expérience claire sur téléphone et ordinateur.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Des outils réunis au même endroit.</span>
-                </li>
-                <li>
-                  <span className="vf-check" aria-hidden="true">&#10003;</span>
-                  <span>Un accompagnement humain quand vous en avez besoin.</span>
-                </li>
-              </ul>
-            </div>
-
-            <div className="vf-why-card">
-              <h3>Votre boutique peut être prête plus vite que vous ne le pensez.</h3>
-              <p>
-                Ajoutez vos produits, personnalisez votre vitrine et partagez votre lien. L’objectif : passer de « je veux vendre en ligne » à « voici ma boutique » sans vous perdre dans la technique.
-              </p>
-              <Link href="/register" className="vf-btn-primary vf-why-btn">
-                Créer ma boutique <span>&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ===================================================
-          8. SECTION EXEMPLES D'USAGE
-          ================================================= */}
-      <section id="temoignages" className="vf-section vf-section--testimonials">
-        <div className="vf-container">
-          <div className="vf-section-header">
-            <span className="vf-kicker">EXEMPLES D’USAGE</span>
-            <h2 className="vf-section-title">
-              Une boutique plus simple,<br />pour vendre plus sereinement.
-            </h2>
-            <p className="vf-section-lead">
-              Des situations concrètes auxquelles MYSTOREY aide les vendeuses à répondre.
-            </p>
-          </div>
-
-          <div className="vf-testimonials-grid">
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;Avant, je recevais mes commandes un peu partout. Maintenant, j’ai enfin une vitrine claire à partager à mes clientes.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">A</div>
-                <div>
-                  <strong>Vendre plus clairement</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;J’avais peur que créer une boutique soit compliqué. J’ai surtout aimé le fait de pouvoir commencer sans me perdre dans la technique.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">M</div>
-                <div>
-                  <strong>Rester organisée</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;Le lien de ma boutique est beaucoup plus professionnel que d’envoyer dix photos différentes dans WhatsApp.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">G</div>
-                <div>
-                  <strong>Créer une relation durable</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;Je peux présenter mes produits, recevoir les commandes et garder une meilleure organisation.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">N</div>
-                <div>
-                  <strong>Suivre ses commandes</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;Ce que j’aime, c’est la simplicité. Je peux me concentrer sur mes produits et mes clients au lieu de passer mon temps à gérer la technique.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">S</div>
-                <div>
-                  <strong>Gagner du temps</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-
-            <article className="vf-testi-card">
-              <blockquote>
-                &ldquo;Ma boutique donne tout de suite une image plus sérieuse de mon activité.&rdquo;
-              </blockquote>
-              <footer>
-                <div className="vf-testi-avatar">P</div>
-                <div>
-                  <strong>Raconter son univers</strong>
-                  <small>Exemple d’usage</small>
-                </div>
-              </footer>
-            </article>
-          </div>
-        </div>
-      </section>
-
-
-      {/* ===================================================
-          9. SECTION OFFRE / TARIFS
-          ================================================= */}
+      {/* 6. Pricing — paid plans are honestly "not open yet" */}
       <section id="tarifs" className="vf-section vf-section--pricing">
         <div className="vf-container">
           <div className="vf-section-header">
             <span className="vf-kicker">TARIFS</span>
-            <h2 className="vf-section-title">
-              Commencez gratuitement.<br />Payez seulement si vous grandissez.
-            </h2>
-            <p className="vf-section-lead">
-              Tout le monde démarre sur le plan gratuit, sans carte bancaire. Vous changez de plan depuis votre tableau de bord uniquement quand votre catalogue devient trop grand.
-            </p>
+            <h2 className="vf-section-title">Gratuit pour commencer.<br />Vraiment.</h2>
+            <p className="vf-section-lead">Tout le monde démarre sur le plan gratuit, sans carte bancaire. La seule différence entre les plans : le nombre de produits.</p>
           </div>
 
           <div className="vf-pricing-wrapper">
-            <div className="vf-pricing-card">
-              <div className="vf-pricing-tag">POUR COMMENCER</div>
+            <div className="vf-pricing-card vf-pricing-card--featured">
+              <div className="vf-pricing-tag">DISPONIBLE</div>
               <h3>Découverte</h3>
               <div className="vf-pricing-amount">
                 <span className="vf-price-val">0 FCFA</span>
                 <span className="vf-price-period">pour toujours</span>
               </div>
-              <p className="vf-pricing-sub">Sans carte bancaire &middot; Sans engagement</p>
-
+              <p className="vf-pricing-sub">Sans carte bancaire · Sans engagement</p>
               <ul className="vf-pricing-list">
                 <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>10 produits</strong></li>
-                <li><span className="vf-check">&#10003;</span> Boutique en ligne personnalisable</li>
-                <li><span className="vf-check">&#10003;</span> Commandes directes sur WhatsApp</li>
-                <li><span className="vf-check">&#10003;</span> Catégories et produit à la une</li>
-                <li><span className="vf-check">&#10003;</span> Tableau de bord et suivi des commandes</li>
+                <li><span className="vf-check">&#10003;</span> Boutique à vos couleurs</li>
+                <li><span className="vf-check">&#10003;</span> Commandes sur WhatsApp</li>
+                <li><span className="vf-check">&#10003;</span> Couleurs, tailles et stock</li>
+                <li><span className="vf-check">&#10003;</span> Suivi des commandes</li>
               </ul>
-
-              <Link href="/register" className="vf-btn-primary vf-pricing-btn">
-                Créer ma boutique <span>&rarr;</span>
-              </Link>
+              <Link href="/register" className="vf-btn-primary vf-pricing-btn">Créer ma boutique <span>&rarr;</span></Link>
             </div>
 
-            <div className="vf-pricing-card vf-pricing-card--featured">
-              <div className="vf-pricing-tag">BIENTÔT</div>
+            <div className="vf-pricing-card">
+              <div className="vf-pricing-tag">OUVERTURE PROCHAINE</div>
               <h3>Plus</h3>
               <div className="vf-pricing-amount">
                 <span className="vf-price-val">2 000 FCFA</span>
                 <span className="vf-price-period">par mois</span>
               </div>
-              <p className="vf-pricing-sub">Quand vos 10 produits ne suffisent plus</p>
-
+              <p className="vf-pricing-sub">Quand 10 produits ne suffisent plus</p>
               <ul className="vf-pricing-list">
                 <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>20 produits</strong></li>
-                <li><span className="vf-check">&#10003;</span> Tout ce que contient Découverte</li>
-                <li><span className="vf-check">&#10003;</span> Mensuel, résiliable à tout moment</li>
+                <li><span className="vf-check">&#10003;</span> Tout le plan Découverte</li>
               </ul>
-
-              <Link href="/register" className="vf-btn-secondary vf-pricing-btn">
-                Commencer par le plan gratuit
-              </Link>
             </div>
 
             <div className="vf-pricing-card">
-              <div className="vf-pricing-tag">BIENTÔT</div>
+              <div className="vf-pricing-tag">OUVERTURE PROCHAINE</div>
               <h3>Pro</h3>
               <div className="vf-pricing-amount">
                 <span className="vf-price-val">2 500 FCFA</span>
                 <span className="vf-price-period">par mois</span>
               </div>
               <p className="vf-pricing-sub">Pour une boutique bien fournie</p>
-
               <ul className="vf-pricing-list">
                 <li><span className="vf-check">&#10003;</span> Jusqu&apos;à <strong>100 produits</strong></li>
-                <li><span className="vf-check">&#10003;</span> Tout ce que contient Découverte</li>
-                <li><span className="vf-check">&#10003;</span> Mensuel, résiliable à tout moment</li>
+                <li><span className="vf-check">&#10003;</span> Tout le plan Découverte</li>
               </ul>
-
-              <Link href="/register" className="vf-btn-secondary vf-pricing-btn">
-                Commencer par le plan gratuit
-              </Link>
             </div>
           </div>
 
-          <p className="vf-pricing-note">
-            Le plan gratuit est disponible dès maintenant. Les plans payants ouvriront prochainement : la seule différence est le nombre de produits que vous pouvez publier — toutes les autres fonctionnalités sont incluses dans le plan gratuit. Vous serez prévenue depuis votre tableau de bord.
-          </p>
+          <p className="vf-pricing-note">Les plans payants ne sont pas encore ouverts : aucun paiement ne vous sera demandé aujourd’hui. Vous serez prévenue depuis votre tableau de bord à leur ouverture.</p>
         </div>
       </section>
 
-
-      {/* ===================================================
-          10. SECTION FAQ
-          ================================================= */}
+      {/* 7. FAQ — the real questions, honest answers */}
       <section id="faq" className="vf-section vf-section--faq">
         <div className="vf-container">
           <div className="vf-section-header">
             <span className="vf-kicker">QUESTIONS FRÉQUENTES</span>
-            <h2 className="vf-section-title">
-              Tout savoir avant de commencer.
-            </h2>
+            <h2 className="vf-section-title">Avant de commencer.</h2>
           </div>
-
           <div className="vf-faq-accordion">
-            <details className="vf-faq-item">
-              <summary className="vf-faq-summary">
-                <span>Faut-il savoir coder ?</span>
-                <span className="vf-faq-arrow" aria-hidden="true">+</span>
-              </summary>
-              <div className="vf-faq-body">
-                <p>Non, absolument aucun code n’est nécessaire. Tout se configure visuellement en quelques clics depuis votre téléphone ou votre ordinateur.</p>
-              </div>
-            </details>
-
-            <details className="vf-faq-item">
-              <summary className="vf-faq-summary">
-                <span>Puis-je gérer ma boutique depuis mon téléphone ?</span>
-                <span className="vf-faq-arrow" aria-hidden="true">+</span>
-              </summary>
-              <div className="vf-faq-body">
-                <p>Oui, MYSTOREY est pensé pour le mobile. Vous pouvez ajouter des produits, modifier vos prix et suivre vos commandes directement depuis votre smartphone.</p>
-              </div>
-            </details>
-
-            <details className="vf-faq-item">
-              <summary className="vf-faq-summary">
-                <span>Puis-je personnaliser ma boutique ?</span>
-                <span className="vf-faq-arrow" aria-hidden="true">+</span>
-              </summary>
-              <div className="vf-faq-body">
-                <p>Oui, vous pouvez adapter les couleurs, ajouter votre logo, bannière, descriptions et organiser vos produits par catégories.</p>
-              </div>
-            </details>
-
-            <details className="vf-faq-item">
-              <summary className="vf-faq-summary">
-                <span>Comment mes clients passent-ils commande ?</span>
-                <span className="vf-faq-arrow" aria-hidden="true">+</span>
-              </summary>
-              <div className="vf-faq-body">
-                <p>Vos clients parcourent votre vitrine, ajoutent leurs articles au panier et finalisent leur commande. Le récapitulatif détaillé vous est automatiquement transmis sur WhatsApp.</p>
-              </div>
-            </details>
-
-            <details className="vf-faq-item">
-              <summary className="vf-faq-summary">
-                <span>Le plan gratuit est-il vraiment gratuit ?</span>
-                <span className="vf-faq-arrow" aria-hidden="true">+</span>
-              </summary>
-              <div className="vf-faq-body">
-                <p>Oui, vous pouvez créer votre boutique et vendre sans aucun frais caché ni carte bancaire requise.</p>
-              </div>
-            </details>
+            {[
+              ["Faut-il un ordinateur ou savoir coder ?", "Non. Tout se fait depuis votre téléphone : créer la boutique, prendre les photos, ajouter les prix, suivre les commandes."],
+              ["Mes clientes doivent-elles créer un compte ?", "Non. Elles ouvrent votre lien, choisissent, indiquent leur nom et leur numéro, puis vous envoient la commande sur WhatsApp."],
+              ["Comment je reçois l’argent de mes ventes ?", "Comme aujourd’hui : vous vous arrangez avec votre cliente (Mobile Money, paiement à la livraison…). MYSTOREY ne prélève rien sur vos ventes et ne touche pas à votre argent."],
+              ["Comment je reçois une commande ?", "La cliente valide son panier : la commande est enregistrée dans votre tableau de bord, et WhatsApp s’ouvre chez elle avec le récapitulatif complet à vous envoyer."],
+              ["Je vends la même robe en plusieurs couleurs ?", "Créez un seul produit, puis ajoutez ses couleurs (ou tailles), chacune avec sa photo et son stock si vous le souhaitez."],
+              ["Combien ça coûte ?", "Rien jusqu’à 10 produits. Des plans à 2 000 et 2 500 FCFA par mois ouvriront prochainement pour les boutiques qui ont besoin de plus de produits."],
+            ].map(([question, answer]) => (
+              <details className="vf-faq-item" key={question}>
+                <summary className="vf-faq-summary"><span>{question}</span><span className="vf-faq-arrow" aria-hidden="true">+</span></summary>
+                <div className="vf-faq-body"><p>{answer}</p></div>
+              </details>
+            ))}
           </div>
         </div>
       </section>
 
-
-      {/* ===================================================
-          11. CTA FINAL (BORDEAUX FONCÉ)
-          ================================================= */}
+      {/* 8. Final CTA */}
       <section className="vf-cta-final">
         <div className="vf-container vf-cta-final-inner">
-          <h2 className="vf-cta-final-title">
-            Votre talent mérite<br />sa boutique.
-          </h2>
-          <p className="vf-cta-final-sub">
-            Arrêtez de gérer votre activité dans tous les sens. Créez un espace clair pour présenter vos produits, recevoir vos commandes et développer votre activité.
-          </p>
+          <h2 className="vf-cta-final-title">Ce soir, envoyez votre lien<br />au lieu de vos photos.</h2>
+          <p className="vf-cta-final-sub">Créez votre boutique maintenant : dans quelques minutes, vous aurez un lien à mettre dans votre statut.</p>
           <div className="vf-cta-final-actions">
-            <Link href="/register" className="vf-btn-primary vf-btn-primary--light">
-              Créer ma boutique gratuitement <span>&rarr;</span>
-            </Link>
+            <Link href="/register" className="vf-btn-primary vf-btn-primary--light">Créer ma boutique gratuite <span>&rarr;</span></Link>
           </div>
         </div>
       </section>
 
-
-      {/* ===================================================
-          12. FOOTER
-          ================================================= */}
       <footer className="vf-footer">
         <div className="vf-container">
           <div className="vf-footer-grid">
-
             <div className="vf-footer-brand">
               <div className="vf-brand">
                 <span className="vf-brand-mark" aria-hidden="true">M</span>
                 <span className="vf-brand-name vf-brand-name--light">MYSTOREY</span>
               </div>
-              <p>
-                La plateforme simple et élégante pour créer votre boutique en ligne et développer vos ventes sur WhatsApp.
-              </p>
+              <p>La boutique en ligne simple des vendeuses qui vendent sur WhatsApp, Instagram et TikTok.</p>
             </div>
-
             <div className="vf-footer-col">
               <h4>Produit</h4>
-              <Link href="#fonctionnalites">Fonctionnalités</Link>
               <Link href="#comment-ca-marche">Comment ça marche</Link>
               <Link href="#tarifs">Tarifs</Link>
               <Link href="/register">Créer ma boutique</Link>
             </div>
-
             <div className="vf-footer-col">
-              <h4>Espace vendeur</h4>
+              <h4>Espace vendeuse</h4>
               <Link href="/login">Se connecter</Link>
-              <Link href="/dashboard">Mon tableau de bord</Link>
-              <Link href="/register">Devenir vendeur</Link>
+              <Link href="/register">Créer un compte</Link>
             </div>
-
             <div className="vf-footer-col">
               <h4>Assistance</h4>
               <Link href="#faq">Questions fréquentes</Link>
-              <Link href="/contact">Contact / Support</Link>
-              <Link href="/politique-confidentialite">Politique de confidentialité</Link>
+              <Link href="/contact">Contact</Link>
+              <Link href="/politique-confidentialite">Confidentialité</Link>
               <Link href="/conditions-utilisation">Conditions d’utilisation</Link>
               <Link href="/mentions-legales">Mentions légales</Link>
             </div>
-
           </div>
-
           <div className="vf-footer-bottom">
-            <p>&copy; 2026 MYSTOREY &middot; Your shop. Your story.</p>
+            <p>&copy; {new Date().getFullYear()} MYSTOREY &middot; Your shop. Your story.</p>
           </div>
         </div>
       </footer>
-
     </div>
   );
 }

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ClipboardList, LayoutDashboard, Package, Store, Users } from "lucide-react";
+import { ClipboardList, CreditCard, LayoutDashboard, MessageSquare, Package, Store, Users } from "lucide-react";
 
 const NAV = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -9,6 +9,8 @@ const NAV = [
   { href: "/admin/stores", label: "Boutiques", icon: Store },
   { href: "/admin/products", label: "Produits", icon: Package },
   { href: "/admin/orders", label: "Commandes", icon: ClipboardList },
+  { href: "/admin/subscriptions", label: "Abonnements", icon: CreditCard },
+  { href: "/admin/feedback", label: "Messages", icon: MessageSquare },
 ];
 
 export function AdminNav() {

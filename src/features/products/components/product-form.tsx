@@ -1,249 +1,287 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import React, { useActionState, useRef, useState, useEffect } from "react";
+import React, { startTransition, useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ImagePlus, Loader2, Sparkles, Star, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Camera, ChevronDown, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { createProduct, updateProduct } from "../actions";
 import type { ProductActionState } from "../schemas";
+import { compressImage, MAX_PHOTOS, MAX_UPLOAD_TOTAL_BYTES } from "../image-compress";
 import { formatPrice } from "@/features/storefront/storefront-types";
 
-export type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; media?: { url: string; path?: string }[]; isAvailable: boolean; isFeatured: boolean; categoryId: string | null };
+export type ProductFormData = { id: string; name: string; note: string; description: string; price: number; imageUrl: string | null; media?: { url: string; path?: string }[]; isAvailable: boolean; isFeatured: boolean; categoryId: string | null; stock?: number | null };
 export type CategoryOption = { id: string; name: string };
-export type ProductPreview = { name: string; price: number; imageUrl: string | null; description: string; category: string; isAvailable: boolean };
 
-export function ProductForm({ storeId, product, categories = [], onPreviewChange }: { storeId: string; product?: ProductFormData; categories?: CategoryOption[]; onPreviewChange?: (preview: ProductPreview) => void }) {
+type Photo =
+  | { key: string; kind: "existing"; path: string; url: string }
+  | { key: string; kind: "legacy"; url: string }
+  | { key: string; kind: "new"; file: File; url: string };
+
+function initialPhotos(product?: ProductFormData): Photo[] {
+  if (!product) return [];
+  if (product.media?.length) return product.media.filter((item) => item.path).map((item) => ({ key: `e:${item.path}`, kind: "existing" as const, path: item.path as string, url: item.url }));
+  return product.imageUrl ? [{ key: "legacy", kind: "legacy", url: product.imageUrl }] : [];
+}
+
+const digitsOnly = (value: string) => value.replace(/[^\d]/g, "");
+const without = (errors: Record<string, string[]>, key: string) => Object.fromEntries(Object.entries(errors).filter(([k]) => k !== key));
+
+/**
+ * Photo → name → price → the rest. The only required fields are the ones a client needs
+ * to buy: a name and a price (a photo is strongly suggested). Everything secondary sits in
+ * "Plus d'options". Photos are shrunk on the phone before upload.
+ */
+export function ProductForm({ storeId, product, categories = [], stockEnabled = false, storePublished = true }: { storeId: string; product?: ProductFormData; categories?: CategoryOption[]; stockEnabled?: boolean; storePublished?: boolean }) {
   const isEdit = !!product;
-  const [state, action, pending] = useActionState<ProductActionState, FormData>(isEdit ? updateProduct : createProduct, {});
-
+  const [state, formAction, pending] = useActionState<ProductActionState, FormData>(isEdit ? updateProduct : createProduct, {});
+  const [photos, setPhotos] = useState<Photo[]>(() => initialPhotos(product));
+  const [processing, setProcessing] = useState(0);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [name, setName] = useState(product?.name ?? "");
-  const [note, setNote] = useState(product?.note ?? "");
-  const [description, setDescription] = useState(product?.description ?? "");
   const [price, setPrice] = useState(product ? String(product.price) : "");
+  const [description, setDescription] = useState(product?.description ?? "");
+  const [note, setNote] = useState(product?.note ?? "");
   const [isAvailable, setIsAvailable] = useState(product?.isAvailable ?? true);
   const [isFeatured, setIsFeatured] = useState(product?.isFeatured ?? false);
   const [categoryId, setCategoryId] = useState(product?.categoryId ?? "");
-  const [images, setImages] = useState<string[]>(product?.media?.length ? product.media.map((item) => item.url) : product?.imageUrl ? [product.imageUrl] : []);
-  const [removedImagePaths, setRemovedImagePaths] = useState<string[]>([]);
-  const [removedLegacyImage, setRemovedLegacyImage] = useState(false);
-  const [, setSelectedFiles] = useState<File[]>([]);
-  const selectedFilesRef = useRef<File[]>([]);
-  const [imageError, setImageError] = useState<string | null>(null);
-  const [newImagePicked, setNewImagePicked] = useState(false);
-  const [dragging, setDragging] = useState(false);
+  const [stock, setStock] = useState(product?.stock === null || product?.stock === undefined ? "" : String(product.stock));
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const createdUrls = useRef<string[]>([]);
 
-  function syncFileInput(files: File[]) {
-    if (!fileInputRef.current) return;
-    const dataTransfer = new DataTransfer();
-    files.forEach((file) => dataTransfer.items.add(file));
-    fileInputRef.current.files = dataTransfer.files;
-  }
+  useEffect(() => () => { createdUrls.current.forEach((url) => URL.revokeObjectURL(url)); }, []);
 
-  const selectedCategoryName = categories.find((c) => c.id === categoryId)?.name ?? null;
-  const numericPrice = price && /^\d+$/.test(price.trim()) ? Number(price.trim()) : null;
-  const previewPrice = numericPrice !== null ? formatPrice(numericPrice) : "— FCFA";
+  const numericPrice = digitsOnly(price) ? Number(digitsOnly(price)) : null;
+  // Checked before sending: nobody should upload megabytes of photos to learn the name is missing.
+  const [localErrors, setLocalErrors] = useState<Record<string, string[]>>({});
+  const errors = { ...(state.fieldErrors ?? {}), ...localErrors };
 
-  // Update preview whenever form data changes
-  useEffect(() => {
-    if (onPreviewChange) {
-      onPreviewChange({
-        name: name || "Titre du produit",
-        price: numericPrice || 0,
-        imageUrl: images[0] ?? null,
-        description: description || "Description du produit",
-        category: categoryId,
-        isAvailable,
-      });
+  async function addFiles(list: FileList | null) {
+    const files = Array.from(list ?? []);
+    if (!files.length) return;
+    setPhotoError(null);
+    const room = MAX_PHOTOS - photos.length;
+    if (room <= 0) { setPhotoError(`${MAX_PHOTOS} photos maximum par produit.`); return; }
+    const accepted = files.slice(0, room);
+    if (files.length > room) setPhotoError(`Seules ${room} photo(s) ont été ajoutées : ${MAX_PHOTOS} maximum par produit.`);
+    setProcessing((n) => n + accepted.length);
+    let failed = 0;
+    for (const file of accepted) {
+      try {
+        const compressed = await compressImage(file);
+        const url = URL.createObjectURL(compressed);
+        createdUrls.current.push(url);
+        setPhotos((current) => current.length >= MAX_PHOTOS ? current : [...current, { key: `n:${crypto.randomUUID()}`, kind: "new", file: compressed, url }]);
+      } catch {
+        failed += 1;
+      } finally {
+        setProcessing((n) => n - 1);
+      }
     }
-  }, [name, price, images, description, categoryId, isAvailable, numericPrice, onPreviewChange]);
-
-  function handleFiles(files: File[]) {
-    setImageError(null);
-    const validFiles = files.filter((file) => ["image/jpeg", "image/png", "image/webp"].includes(file.type) && file.size <= 5 * 1024 * 1024);
-    const valid = validFiles.slice(0, Math.max(0, 12 - images.length));
-    if (valid.length !== files.length) setImageError("Certaines photos ont été ignorées. Utilisez JPG, PNG ou WebP de 5 Mo maximum, 12 photos maximum.");
-    if (!valid.length) return;
-    const nextFiles = [...selectedFilesRef.current, ...valid].slice(0, 12);
-    selectedFilesRef.current = nextFiles;
-    syncFileInput(nextFiles);
-    setSelectedFiles(nextFiles);
-    setImages((current) => [...current.filter((item) => item.startsWith("http")), ...valid.map((file) => URL.createObjectURL(file))].slice(0, 12));
-    setNewImagePicked(true);
+    if (failed) setPhotoError(failed === 1 ? "Une photo n’a pas pu être lue. Essayez une photo JPG ou une capture d’écran." : `${failed} photos n’ont pas pu être lues. Essayez des photos JPG ou des captures d’écran.`);
   }
 
-  function handleDrop(e: React.DragEvent) {
-    e.preventDefault();
-    setDragging(false);
-    const files = Array.from(e.dataTransfer.files ?? []);
-    if (!files.length || !fileInputRef.current) return;
-    handleFiles(files);
+  function move(index: number, delta: number) {
+    setPhotos((current) => {
+      const target = index + delta;
+      if (target < 0 || target >= current.length) return current;
+      const next = [...current];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
   }
+
+  function remove(index: number) {
+    setPhotos((current) => current.filter((_, i) => i !== index));
+  }
+
+  function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (processing > 0) return;
+    const missing: Record<string, string[]> = {};
+    if (!name.trim()) missing.name = ["Donnez un nom à votre produit."];
+    if (!numericPrice) missing.price = [price.trim() ? "Indiquez un prix supérieur à 0." : "Le prix est requis."];
+    setLocalErrors(missing);
+    if (Object.keys(missing).length) {
+      document.querySelector<HTMLInputElement>(missing.name ? "input[name=name]" : "input[name=price]")?.focus();
+      return;
+    }
+    const newPhotos = photos.filter((photo): photo is Extract<Photo, { kind: "new" }> => photo.kind === "new");
+    const total = newPhotos.reduce((sum, photo) => sum + photo.file.size, 0);
+    if (total > MAX_UPLOAD_TOTAL_BYTES) { setPhotoError("Les nouvelles photos sont trop lourdes ensemble : enregistrez avec moins de photos, puis ajoutez les autres ensuite."); return; }
+    const data = new FormData(event.currentTarget);
+    data.delete("images");
+    data.delete("pickImages");
+    data.delete("pickCamera");
+    let n = 0;
+    const order = photos.map((photo) => {
+      if (photo.kind === "existing") return `existing:${photo.path}`;
+      if (photo.kind === "legacy") return "legacy";
+      data.append("images", photo.file, photo.file.name);
+      return `new:${n++}`;
+    });
+    data.set("photoOrder", JSON.stringify(order));
+    startTransition(() => formAction(data));
+  }
+
+  const busy = pending || processing > 0;
+  const submitLabel = processing > 0 ? "Préparation des photos…" : pending ? (isEdit ? "Enregistrement…" : "Ajout en cours…") : isEdit ? "Enregistrer" : isAvailable ? "Ajouter à ma boutique" : "Enregistrer (masqué)";
 
   return (
-    <form className="product-editor" action={action} onDragOver={(e) => { e.preventDefault(); setDragging(true); }} onDragLeave={() => setDragging(false)} onDrop={handleDrop}>
+    <form className="pf" onSubmit={submit} noValidate>
       <input type="hidden" name="storeId" value={storeId} />
-      <input type="hidden" name="removedImagePaths" value={JSON.stringify(removedImagePaths)} />
-      <input type="hidden" name="removeLegacyImage" value={removedLegacyImage ? "true" : "false"} />
       {isEdit && <input type="hidden" name="productId" value={product.id} />}
 
-      <div className="product-editor-bar">
-        <div>
-          <p className="vf-eyebrow">Produits</p>
-          <h1>{isEdit ? "Modifier le produit" : "Ajouter un produit"}</h1>
-          <p className="muted">{isEdit ? "Ajustez les informations de votre produit, vos clients verront l’aperçu à droite." : "Ajoutez les informations de votre produit pour l’ajouter à votre boutique."}</p>
-        </div>
-        <div className="product-editor-actions">
-          <Link className="vf-button vf-button--ghost" href="/dashboard/products">Annuler</Link>
-          <button className="vf-button" disabled={pending}>
-            {pending ? <><Loader2 className="spin" size={16} aria-hidden="true" /> {isEdit ? "Enregistrement…" : "Création…"}</> : isEdit ? "Enregistrer les modifications" : "Créer le produit"}
-          </button>
-        </div>
-      </div>
+      <header className="pf-head">
+        <Link className="pf-back" href="/dashboard/products"><ArrowLeft size={16} aria-hidden="true" /> Produits</Link>
+        <h1>{isEdit ? "Modifier le produit" : "Nouveau produit"}</h1>
+        <p className="muted">{isEdit ? "Vos changements sont visibles dès l’enregistrement." : "Une photo, un nom, un prix : c’est tout ce qu’il faut pour commencer."}</p>
+      </header>
 
-      <div className="product-editor-grid">
-        <div className="product-editor-main">
-          <section className="editor-section" aria-labelledby="editor-section-name">
-            <h2 id="editor-section-name">Nom du produit</h2>
-            <p className="editor-hint">A quel produit souhaitez-vous ajouter à votre boutique ?</p>
+      <div className="pf-grid">
+        <div className="pf-main">
+          {/* 1. Photos */}
+          <section className="pf-card" aria-labelledby="pf-photos">
+            <div className="pf-card-head">
+              <h2 id="pf-photos"><span className="pf-step">1</span> Photos</h2>
+              <span className="muted pf-count">{photos.length}/{MAX_PHOTOS}</span>
+            </div>
+            <input ref={fileInputRef} type="file" name="pickImages" accept="image/*" multiple className="visually-hidden" tabIndex={-1} onChange={(e) => { void addFiles(e.target.files); e.target.value = ""; }} />
+            <input ref={cameraInputRef} type="file" name="pickCamera" accept="image/*" capture="environment" className="visually-hidden" tabIndex={-1} onChange={(e) => { void addFiles(e.target.files); e.target.value = ""; }} />
+            {photos.length === 0 && processing === 0 ? (
+              <div className="pf-photo-empty">
+                <button type="button" className="pf-photo-add pf-photo-add--big" onClick={() => fileInputRef.current?.click()}>
+                  <ImagePlus size={28} aria-hidden="true" />
+                  <strong>Ajouter des photos</strong>
+                  <small>Depuis votre galerie · jusqu’à {MAX_PHOTOS} photos</small>
+                </button>
+                <button type="button" className="pf-photo-camera" onClick={() => cameraInputRef.current?.click()}>
+                  <Camera size={18} aria-hidden="true" /> Prendre une photo
+                </button>
+              </div>
+            ) : (
+              <ul className="pf-photos" aria-label="Photos du produit">
+                {photos.map((photo, index) => (
+                  <li key={photo.key} className="pf-photo">
+                    <img src={photo.url} alt={`Photo ${index + 1}`} />
+                    {index === 0 && <span className="pf-photo-cover">Principale</span>}
+                    <div className="pf-photo-tools">
+                      <button type="button" onClick={() => move(index, -1)} disabled={index === 0} aria-label={`Déplacer la photo ${index + 1} vers la gauche`}><ArrowLeft size={14} /></button>
+                      <button type="button" onClick={() => remove(index)} aria-label={`Retirer la photo ${index + 1}`} className="is-danger"><Trash2 size={14} /></button>
+                      <button type="button" onClick={() => move(index, 1)} disabled={index === photos.length - 1} aria-label={`Déplacer la photo ${index + 1} vers la droite`}><ArrowRight size={14} /></button>
+                    </div>
+                  </li>
+                ))}
+                {Array.from({ length: processing }).map((_, i) => (
+                  <li key={`p${i}`} className="pf-photo pf-photo--loading" aria-label="Photo en préparation"><Loader2 className="spin" size={20} aria-hidden="true" /></li>
+                ))}
+                {photos.length + processing < MAX_PHOTOS && (
+                  <li className="pf-photo pf-photo--add">
+                    <button type="button" onClick={() => fileInputRef.current?.click()}><ImagePlus size={20} aria-hidden="true" /><span>Ajouter</span></button>
+                  </li>
+                )}
+              </ul>
+            )}
+            <p className="pf-hint">La première photo est celle que vos clientes voient en premier. Utilisez les flèches pour changer l’ordre.</p>
+            {photoError && <p className="form-error" role="alert">{photoError}</p>}
+          </section>
+
+          {/* 2. The essentials */}
+          <section className="pf-card" aria-labelledby="pf-essentials">
+            <h2 id="pf-essentials"><span className="pf-step">2</span> Nom et prix</h2>
             <label className="field">
-              <input className="field-input" name="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex. : Robe longue satinée" required maxLength={100} autoFocus />
-              {state.fieldErrors?.name && <small className="field-error">{state.fieldErrors.name[0]}</small>}
+              <span>Nom du produit</span>
+              <input className="field-input" name="name" value={name} onChange={(e) => { setName(e.target.value); if (localErrors.name) setLocalErrors((current) => without(current, "name")); }} placeholder="Ex. : Robe longue en wax" maxLength={100} autoComplete="off" aria-invalid={errors.name ? true : undefined} />
+              {errors.name && <small className="field-error">{errors.name[0]}</small>}
+            </label>
+            <label className="field">
+              <span>Prix</span>
+              <div className="price-group">
+                <input className="field-input" name="price" inputMode="numeric" value={price} onChange={(e) => { setPrice(e.target.value); if (localErrors.price) setLocalErrors((current) => without(current, "price")); }} placeholder="Ex. : 8500" autoComplete="off" aria-invalid={errors.price ? true : undefined} />
+                <span className="price-unit">FCFA</span>
+              </div>
+              {errors.price ? <small className="field-error">{errors.price[0]}</small> : numericPrice ? <small className="field-hint">Affiché : {formatPrice(numericPrice)}</small> : null}
             </label>
           </section>
 
-          <section className="editor-section" aria-labelledby="editor-section-note">
-            <h2 id="editor-section-note">Accroche courte</h2>
-            <p className="editor-hint">Une phrase courte qui attirera l’attention, affichée sous le nom du produit.</p>
+          {/* 3. Useful details */}
+          <section className="pf-card" aria-labelledby="pf-details">
+            <h2 id="pf-details"><span className="pf-step">3</span> Infos utiles <small className="muted">(facultatif)</small></h2>
             <label className="field">
-              <input className="field-input" name="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ex. : Disponible maintenant" maxLength={120} />
-              {state.fieldErrors?.note && <small className="field-error">{state.fieldErrors.note[0]}</small>}
+              <span>Description</span>
+              <textarea className="field-input" name="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={4} maxLength={1000} placeholder="Matière, tailles disponibles, entretien, délai de livraison…" />
+              <small className="field-count">{description.length}/1000</small>
+              {errors.description && <small className="field-error">{errors.description[0]}</small>}
             </label>
-          </section>
-
-          <section className="editor-section" aria-labelledby="editor-section-category">
-            <h2 id="editor-section-category">Catégorie</h2>
-            <p className="editor-hint">Organisez votre produit pour aider vos clients à le retrouver.</p>
             <label className="field">
+              <span>Catégorie</span>
               <select className="field-input" name="categoryId" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                 <option value="">Sans catégorie</option>
                 {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
               </select>
-              {categories.length === 0 && <small className="field-hint">Aucune catégorie pour l’instant. Créez-les dans « Catégories » pour organiser votre catalogue.</small>}
+              {categories.length === 0 && <small className="field-hint">Pas encore de catégorie. <Link href="/dashboard/categories">Créer des catégories</Link> (Robes, Sacs…) pour aider vos clientes à s’y retrouver.</small>}
             </label>
+            {stockEnabled && (
+              <label className="field">
+                <span>Quantité en stock</span>
+                <input className="field-input" name="stock" inputMode="numeric" value={stock} onChange={(e) => setStock(e.target.value)} placeholder="Laissez vide si vous ne comptez pas" aria-invalid={errors.stock ? true : undefined} />
+                {errors.stock ? <small className="field-error">{errors.stock[0]}</small> : <small className="field-hint">À 0, le produit s’affiche « épuisé » et ne peut plus être commandé.</small>}
+              </label>
+            )}
+            {!isEdit && <p className="pf-hint">Plusieurs couleurs ou tailles ? Enregistrez d’abord le produit, puis ajoutez les choix (avec leur photo) depuis sa fiche.</p>}
           </section>
 
-          <section className="editor-section" aria-labelledby="editor-section-price">
-            <h2 id="editor-section-price">Prix de vente</h2>
-            <p className="editor-hint">Le prix affiché à vos clients.</p>
-            <label className="field">
-              <div className="price-group">
-                <input className="field-input" name="price" type="number" inputMode="numeric" min={0} value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Ex. : 8500" required />
-                <span className="price-unit">FCFA</span>
-              </div>
-              {state.fieldErrors?.price && <small className="field-error">{state.fieldErrors.price[0]}</small>}
-            </label>
-          </section>
-
-          <section className="editor-section" aria-labelledby="editor-section-description">
-            <h2 id="editor-section-description">Description</h2>
-            <p className="editor-hint">Présentez votre produit à vos clients.</p>
-            <label className="field">
-              <textarea className="field-input" name="description" value={description} onChange={(e) => setDescription(e.target.value)} rows={5} maxLength={1000} placeholder="Décrivez votre produit, ses caractéristiques, sa matière, sa taille..." />
-              {state.fieldErrors?.description && <small className="field-error">{state.fieldErrors.description[0]}</small>}
-              <small className="field-count">{description.length}/1000</small>
-            </label>
-          </section>
-
-          <section className="editor-section" aria-labelledby="editor-section-options">
-            <h2 id="editor-section-options">Disponibilité</h2>
-            <p className="editor-hint">Indiquez si ce produit peut actuellement être commandé.</p>
+          {/* 4. Visibility */}
+          <section className="pf-card" aria-labelledby="pf-visibility">
+            <h2 id="pf-visibility"><span className="pf-step">4</span> Publication</h2>
             <label className="toggle-row">
               <input type="checkbox" name="isAvailable" checked={isAvailable} onChange={(e) => setIsAvailable(e.target.checked)} />
               <span className="toggle-control" aria-hidden="true"><span /></span>
-              <span className="toggle-text"><strong>Produit disponible</strong><small>Les clients peuvent commander ce produit.</small></span>
+              <span className="toggle-text">
+                <strong>{isAvailable ? "Visible dans ma boutique" : "Masqué"}</strong>
+                <small>{isAvailable ? (storePublished ? "Vos clientes le voient et peuvent le commander." : "Il sera visible dès que votre boutique sera publiée.") : "Personne ne le voit. Pratique pour un produit épuisé ou pas encore prêt."}</small>
+              </span>
             </label>
           </section>
 
-          <section className="editor-section" aria-labelledby="editor-section-featured">
-            <h2 id="editor-section-featured">Produit vedette</h2>
-            <p className="editor-hint">Mettre ce produit en avant dans votre boutique.</p>
+          <details className="pf-card pf-advanced">
+            <summary><span>Plus d’options</span><ChevronDown size={16} aria-hidden="true" /></summary>
+            <label className="field">
+              <span>Petite phrase d’accroche</span>
+              <input className="field-input" name="note" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ex. : Nouvelle collection · Pièce unique" maxLength={120} />
+              <small className="field-hint">Affichée sous le nom du produit.</small>
+            </label>
             <label className="toggle-row">
               <input type="checkbox" name="isFeatured" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
               <span className="toggle-control" aria-hidden="true"><span /></span>
-              <span className="toggle-text"><strong><Star size={13} aria-hidden="true" /> Afficher comme produit vedette</strong><small>Ce produit apparaîtra parmi vos produits mis en avant.</small></span>
+              <span className="toggle-text"><strong><Star size={13} aria-hidden="true" /> Mettre à la une</strong><small>Le produit apparaît en premier dans votre boutique.</small></span>
             </label>
-          </section>
+          </details>
 
-          <section className="editor-section" aria-labelledby="editor-section-image">
-            <h2 id="editor-section-image">Image du produit</h2>
-            <p className="editor-hint">Ajoutez une belle photo de votre produit. JPG, PNG ou WebP.</p>
-            <input ref={fileInputRef} type="file" name="images" multiple accept="image/jpeg,image/png,image/webp" className="visually-hidden" onChange={(e) => handleFiles(Array.from(e.target.files ?? []))} />
-            {!images.length ? (
-              <button type="button" className={`upload-zone${dragging ? " is-dragging" : ""}`} onClick={() => fileInputRef.current?.click()}>
-                <span className="upload-zone-icon"><ImagePlus size={22} aria-hidden="true" /></span>
-                <strong>Ajouter des photos</strong>
-                <small>Choisissez une ou plusieurs photos. JPG, PNG ou WebP, 5 Mo maximum par photo.</small>
-              </button>
-            ) : (
-              <div className="upload-preview">
-                <div className="upload-gallery-grid">{images.map((item, index) => <div className="upload-gallery-item" key={`${item}-${index}`}><img src={item} alt={`Photo ${index + 1} du produit`} /><button type="button" className="upload-gallery-remove" onClick={() => {
-                  const fileIndex = item.startsWith("http") ? -1 : images.slice(0, index).filter((image) => !image.startsWith("http")).length;
-                  if (item.startsWith("http") && product?.media?.[index]?.path) setRemovedImagePaths((current) => [...current, product.media?.[index]?.path ?? ""].filter(Boolean));
-                  if (item === product?.imageUrl && !product?.media?.length) setRemovedLegacyImage(true);
-                  setImages((current) => current.filter((_, itemIndex) => itemIndex !== index));
-                  const nextFiles = fileIndex < 0 ? selectedFilesRef.current : selectedFilesRef.current.filter((_, itemIndex) => itemIndex !== fileIndex);
-                  selectedFilesRef.current = nextFiles;
-                  syncFileInput(nextFiles);
-                  setSelectedFiles(nextFiles);
-                }} aria-label={`Supprimer la photo ${index + 1}`}><Trash2 size={14} aria-hidden="true" /></button></div>)}</div>
-                <div className="upload-preview-actions">
-                  {newImagePicked ? (
-                    <button type="button" className="upload-remove" onClick={() => { setImages(product?.media?.length ? product.media.map((item) => item.url) : product?.imageUrl ? [product.imageUrl] : []); setRemovedImagePaths([]); setRemovedLegacyImage(false); selectedFilesRef.current = []; setSelectedFiles([]); setNewImagePicked(false); if (fileInputRef.current) fileInputRef.current.value = ""; }} aria-label="Réinitialiser les photos"><Trash2 size={15} aria-hidden="true" /> Réinitialiser</button>
-                  ) : null}
-                  <button type="button" className="upload-replace" onClick={() => fileInputRef.current?.click()}>
-                    <Upload size={15} aria-hidden="true" /> Ajouter des photos
-                  </button>
-                </div>
-              </div>
-            )}
-            {imageError && <p className="form-error" role="alert">{imageError}</p>}
-          </section>
-
-          {state.error && <p className="form-error editor-error" role="alert">{state.error}</p>}
+          {state.error && <p className="form-error pf-error" role="alert">{state.error}</p>}
         </div>
 
-        <aside className="product-editor-preview" aria-label="Aperçu du produit">
-          <p className="editor-preview-label"><Sparkles size={13} aria-hidden="true" /> Aperçu</p>
-          <div className="preview-card">
-            <div className="preview-media">
-              {images[0] ? <img src={images[0]} alt="" /> : <span className="preview-placeholder"><ImagePlus size={28} aria-hidden="true" /></span>}
-              {isFeatured && <span className="preview-badge"><Star size={11} aria-hidden="true" /> À la une</span>}
+        <aside className="pf-preview" aria-label="Aperçu client">
+          <p className="pf-preview-label">Ce que voit votre cliente</p>
+          <div className="pf-preview-card">
+            <div className="pf-preview-media">
+              {photos[0] ? <img src={photos[0].url} alt="" /> : <ImagePlus size={28} aria-hidden="true" />}
+              {isFeatured && <span className="pf-preview-badge"><Star size={11} aria-hidden="true" /> À la une</span>}
             </div>
-            <div className="preview-details">
-              <h3 className="preview-name">{name.trim() || "Nom du produit"}</h3>
-              {note.trim() && <p className="preview-note">{note}</p>}
-              <div className="preview-bottom">
-                <span className="preview-price">{previewPrice}</span>
-                <span className="preview-cta">Commander</span>
-              </div>
-              <div className="preview-extras">
-                {selectedCategoryName && <span className="preview-category">{selectedCategoryName}</span>}
-                {description.trim() && <p className="preview-description">{description}</p>}
-              </div>
+            <div className="pf-preview-body">
+              <strong>{name.trim() || "Nom du produit"}</strong>
+              {note.trim() && <small>{note}</small>}
+              <span className="pf-preview-price">{numericPrice ? formatPrice(numericPrice) : "Prix"}</span>
+              <span className="pf-preview-cta">{isAvailable ? "Ajouter au panier" : "Masqué"}</span>
             </div>
           </div>
-          <p className="preview-caption">Vos clients verront cet aperçu dans votre boutique.</p>
         </aside>
       </div>
 
-      <div className="product-editor-bar product-editor-bar--bottom">
-        <p className="muted">{isEdit ? "Enregistrez pour appliquer vos modifications." : "Votre produit sera visible dès sa création."}</p>
-        <div className="product-editor-actions">
-          <Link className="vf-button vf-button--ghost" href="/dashboard/products">Annuler</Link>
-          <button className="vf-button" disabled={pending}>
-            {pending ? <><Loader2 className="spin" size={16} aria-hidden="true" /> {isEdit ? "Enregistrement…" : "Création…"}</> : isEdit ? "Enregistrer les modifications" : "Créer le produit"}
-          </button>
-        </div>
+      <div className="pf-savebar">
+        <Link className="vf-button vf-button--ghost" href="/dashboard/products">Annuler</Link>
+        <button className="vf-button pf-save" type="submit" disabled={busy}>
+          {busy && <Loader2 className="spin" size={16} aria-hidden="true" />} {submitLabel}
+        </button>
       </div>
     </form>
   );

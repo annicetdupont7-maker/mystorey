@@ -48,8 +48,8 @@ export default async function MarketingPage() {
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
       <section className="page-head"><div><p className="vf-eyebrow">Développer</p><h1>Partagez, puis relancez avec tact.</h1><p className="muted">Ouvrez WhatsApp avec un message préparé à partir de vos vraies commandes. Aucun message n’est envoyé automatiquement.</p></div></section>
       <section className="marketing-layout">
-        <div className="panel"><p className="vf-eyebrow">Lien public</p><h2>{store.name}</h2><p className="muted">{publicUrl}</p><StoreShareSheet storeName={store.name} storeSlug={store.slug} /></div>
-        <div className="panel"><p className="vf-eyebrow">Présence</p><h2>{store.status === "published" ? "Votre boutique est en ligne" : "Votre boutique est en brouillon"}</h2><p className="muted">{store.status === "published" ? "Vos clientes peuvent découvrir vos produits via ce lien." : "Publiez votre boutique depuis Apparence avant de la partager."}</p></div>
+        <div className="panel"><p className="vf-eyebrow">Lien public</p><h2>{store.name}</h2><p className="muted">{publicUrl}</p><StoreShareSheet storeName={store.name} storeSlug={store.slug} published={store.status === "published"} /></div>
+        <div className="panel"><p className="vf-eyebrow">Présence</p><h2>{store.status === "published" ? "Votre boutique est en ligne" : "Votre boutique est en brouillon"}</h2><p className="muted">{store.status === "published" ? "Vos clientes peuvent découvrir vos produits via ce lien." : "Publiez votre boutique depuis votre tableau de bord avant de la partager."}</p></div>
       </section>
       <section className="panel reengagement-panel" aria-labelledby="reengagement-title">
         <div className="panel-head"><div><p className="vf-eyebrow">Relances intelligentes</p><h2 id="reengagement-title">Des rappels humains, jamais du spam.</h2></div><span className="tag">{candidates.length} à examiner</span></div>

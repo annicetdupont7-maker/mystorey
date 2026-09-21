@@ -1,14 +1,16 @@
 import Link from "next/link";
 import type { LucideIcon } from "lucide-react";
-import { Building2, ClipboardList, Coins, Package, ShoppingBag, Store, Users, UserPlus } from "lucide-react";
+import { AlertTriangle, Building2, ClipboardList, Coins, MessageSquare, Package, ShoppingBag, Store, Users, UserPlus } from "lucide-react";
 import { getAdminDashboard } from "@/features/admin/data";
+import { getAdminHealth } from "@/features/admin/insights-data";
 import { formatDateTime, formatFCFA } from "@/features/admin/stats";
 import { StatusBadge } from "@/features/orders/components/status-badge";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHomePage() {
-  const { stats, recentOrders, activity, error } = await getAdminDashboard();
+  const [{ stats, recentOrders, activity, error }, health] = await Promise.all([getAdminDashboard(), getAdminHealth()]);
+  const watchCount = health.publishedWithoutWhatsapp.length + health.readyButDraft.length + health.zeroPriceProducts.length + (health.newFeedback ?? 0);
   return (
     <div className="admin-page">
       <header className="page-head">
@@ -17,7 +19,7 @@ export default async function AdminHomePage() {
           <h1>Vue d’ensemble</h1>
           <p className="muted">L’état de la plateforme MYSTOREY, en temps réel.</p>
         </div>
-        <Link className="vf-button vf-button--ghost" href="/admin/users">Gérer les utilisateurs</Link>
+        <Link className="vf-button vf-button--ghost" href="/dashboard">Mon espace vendeur</Link>
       </header>
 
       {error && <p className="banner-warn" role="alert">{error}</p>}
@@ -29,6 +31,23 @@ export default async function AdminHomePage() {
         <AdminKpi label="Produits" value={String(stats.products)} icon={Package} tone="indigo" />
         <AdminKpi label="Commandes" value={String(stats.orders)} detail={`${stats.ordersPending} non confirmée(s)`} icon={ClipboardList} tone="amber" />
         <AdminKpi label="CA livré des boutiques" value={formatFCFA(stats.revenue)} detail="commandes au statut livré" icon={Coins} tone="green" />
+      </section>
+
+      <section className="panel admin-watch" aria-labelledby="admin-watch-title">
+        <div className="panel-head">
+          <div>
+            <p className="vf-eyebrow">À surveiller</p>
+            <h2 id="admin-watch-title">{watchCount === 0 ? "Rien d’urgent 👌" : `${watchCount} point${watchCount > 1 ? "s" : ""} à regarder`}</h2>
+          </div>
+          {health.newFeedback !== null && <Link className="text-button" href="/admin/feedback"><MessageSquare size={14} aria-hidden="true" /> {health.newFeedback} message{health.newFeedback > 1 ? "s" : ""} nouveau{health.newFeedback > 1 ? "x" : ""}</Link>}
+        </div>
+        <div className="admin-watch-grid">
+          <WatchCard tone="danger" title="En ligne mais sans WhatsApp" hint="Les clientes ne peuvent pas commander." items={health.publishedWithoutWhatsapp.map((s) => ({ key: s.id, label: s.name, detail: s.ownerName, href: `/store/${s.slug}` }))} />
+          <WatchCard tone="warn" title="Prêtes mais pas publiées" hint="Produit visible + WhatsApp : il ne manque que « Publier »." items={health.readyButDraft.map((s) => ({ key: s.id, label: s.name, detail: s.ownerName, href: `/admin/users/${s.ownerId}` }))} />
+          <WatchCard tone="muted" title="Boutiques sans produit" hint="Inscription faite, catalogue vide : à relancer." items={health.storesWithoutProducts.map((s) => ({ key: s.id, label: s.name, detail: `${s.ownerName} · ${s.status === "published" ? "en ligne" : "brouillon"}`, href: `/admin/users/${s.ownerId}` }))} />
+          <WatchCard tone="muted" title="Produits à 0 FCFA" hint="Probablement un prix oublié." items={health.zeroPriceProducts.map((p) => ({ key: p.id, label: p.name, detail: p.storeName }))} />
+        </div>
+        {health.accountsWithoutStore > 0 && <p className="muted admin-watch-foot">{health.accountsWithoutStore} compte{health.accountsWithoutStore > 1 ? "s" : ""} sans boutique (inscription non terminée).</p>}
       </section>
 
       <section className="admin-panels">
@@ -104,6 +123,26 @@ function AdminKpi({ label, value, detail, icon: Icon, tone }: { label: string; v
       <span className="admin-kpi-label">{label}</span>
       <span className="admin-kpi-value">{value}</span>
       {detail && <span className="admin-kpi-detail">{detail}</span>}
+    </div>
+  );
+}
+function WatchCard({ tone, title, hint, items }: { tone: "danger" | "warn" | "muted"; title: string; hint: string; items: { key: string; label: string; detail: string; href?: string }[] }) {
+  return (
+    <div className={`admin-watch-card admin-watch-card--${tone}${items.length === 0 ? " is-empty" : ""}`}>
+      <div className="admin-watch-card-head">
+        {tone === "danger" && items.length > 0 && <AlertTriangle size={15} aria-hidden="true" />}
+        <strong>{title}</strong>
+        <span className="admin-watch-count">{items.length}</span>
+      </div>
+      <small>{hint}</small>
+      {items.length > 0 && (
+        <ul>
+          {items.slice(0, 5).map((item) => (
+            <li key={item.key}>{item.href ? <Link href={item.href} {...(item.href.startsWith("/store/") ? { target: "_blank", rel: "noopener noreferrer" } : {})}>{item.label}</Link> : <span>{item.label}</span>}<span className="muted"> · {item.detail}</span></li>
+          ))}
+          {items.length > 5 && <li className="muted">+ {items.length - 5} autre(s)</li>}
+        </ul>
+      )}
     </div>
   );
 }

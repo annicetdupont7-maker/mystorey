@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 import { useActionState, useRef, useState } from "react";
+import { PhoneField } from "@/features/phone/phone-field";
 import { Storefront } from "@/features/storefront/components";
 import { demoProducts, type ProductView } from "@/features/storefront/storefront-types";
 import { themeCssVariables } from "@/features/themes/resolve-theme";
@@ -149,14 +150,10 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
             <span className="identity-step">4</span>
             <div>
               <h2>Coordonnées</h2>
-              <p>Le numéro WhatsApp qui reçoit les commandes de vos clients.</p>
+              <p>Le numéro WhatsApp qui reçoit les commandes de vos clientes.</p>
             </div>
           </div>
-          <label className="field"><span>WhatsApp</span>
-            <input name="whatsapp" type="tel" inputMode="tel" autoComplete="tel" defaultValue={whatsapp} placeholder="+229 01 45 28 93 99" />
-            <small className="field-hint">Format international, avec l’indicatif du pays : +229, +225, +237…</small>
-            {state.fieldErrors?.whatsapp && <small className="field-error">{state.fieldErrors.whatsapp[0]}</small>}
-          </label>
+          <PhoneField name="whatsapp" id="whatsapp" label="Numéro WhatsApp" defaultValue={whatsapp} hint="Indispensable : vos clientes vous envoient leur commande sur ce numéro." error={state.fieldErrors?.whatsapp?.[0]} />
         </section>
 
         {state.error && <p className="form-error" role="alert">{state.error}</p>}

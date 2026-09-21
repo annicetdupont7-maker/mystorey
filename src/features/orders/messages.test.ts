@@ -18,9 +18,11 @@ const order = (overrides: Partial<OrderMessageView> = {}): OrderMessageView => (
 
 describe("buildCheckoutMessage", () => {
   it("compose le numéro, le client, l'adresse et le total", () => {
-    const msg = buildCheckoutMessage(order());
-    expect(msg).toContain("🛍️ Nouvelle commande MYSTOREY");
+    const msg = buildCheckoutMessage(order(), "Amina Fashion");
+    expect(msg.startsWith("Bonjour Amina Fashion 👋")).toBe(true);
+    expect(msg).toContain("Je viens de passer une commande sur votre boutique.");
     expect(msg).toContain("Commande #VF-1042");
+    expect(msg).not.toContain("Merci pour votre commande");
     expect(msg).toContain("Client : Sarah");
     expect(msg).toContain("Téléphone : +229 97 00 00 00");
     expect(msg).toContain("Livraison : Abomey-Calavi");

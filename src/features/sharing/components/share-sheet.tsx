@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Camera, Check, Copy, ExternalLink, MessageCircle, Share2, ShoppingBag, Store, X } from "lucide-react";
 import { formatPrice } from "@/features/storefront/storefront-types";
+import { DEFAULT_APP_URL } from "@/lib/app-url";
 import { buildFacebookShareUrl, buildShareMessages, buildStoreShareMessages, buildWhatsAppShareUrl, productShareUrl, qrCodeUrl, storeShareUrl, type SharePayload } from "../share";
 
 type ShareMessages = { whatsapp: string; facebook: string; instagram: string };
@@ -95,7 +96,7 @@ function ShareDialog({ open, onClose, title, eyebrow, description, url, urlLabel
   );
 }
 
-const realBaseUrl = () => (typeof window !== "undefined" ? window.location.origin : "https://mystorey.app");
+const realBaseUrl = () => (typeof window !== "undefined" ? window.location.origin : DEFAULT_APP_URL);
 
 export function ShareSheet({ product, storeSlug, label = "Partager" }: { product: { id: string; name: string; price: number; imageUrl?: string | null; available?: boolean }; storeSlug: string; label?: string }) {
   const [open, setOpen] = useState(false);
@@ -133,7 +134,7 @@ export function ShareSheet({ product, storeSlug, label = "Partager" }: { product
   );
 }
 
-export function StoreShareSheet({ storeName, storeSlug }: { storeName: string; storeSlug: string }) {
+export function StoreShareSheet({ storeName, storeSlug, published = true }: { storeName: string; storeSlug: string; published?: boolean }) {
   const [open, setOpen] = useState(false);
   const baseUrl = realBaseUrl();
   const url = storeShareUrl(storeSlug, baseUrl);
@@ -148,7 +149,7 @@ export function StoreShareSheet({ storeName, storeSlug }: { storeName: string; s
         onClose={() => setOpen(false)}
         title="Partager ma boutique"
         eyebrow="Tous les produits de la boutique"
-        description="Ce lien permet à vos clients de découvrir tous les produits disponibles dans votre boutique."
+        description={published ? "Ce lien permet à vos clientes de découvrir tous vos produits et de commander." : "⚠️ Votre boutique n’est pas encore publiée : ce lien affichera une page d’attente. Publiez-la depuis votre tableau de bord avant de le partager."}
         url={url}
         urlLabel="Lien de la boutique"
         messages={buildStoreShareMessages(storeName, storeSlug, baseUrl)}
@@ -158,7 +159,7 @@ export function StoreShareSheet({ storeName, storeSlug }: { storeName: string; s
             <div className="share-preview-meta">
               <strong>{storeName}</strong>
               <span className="share-preview-price">Boutique en ligne</span>
-              <span className="tag tag--ok">Publiée</span>
+              <span className={`tag ${published ? "tag--ok" : "tag--warn"}`}>{published ? "En ligne" : "Pas encore publiée"}</span>
             </div>
           </div>
         }

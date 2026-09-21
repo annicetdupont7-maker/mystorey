@@ -1259,6 +1259,8 @@ a { color: inherit; }
 .password-toggle:hover { color: var(--ink); background: #f4ebe2; }
 .resend-form { margin: .35rem 0 0; display: grid; gap: .4rem; justify-items: start; }
 
+/* Auth pages follow the product direction from the launch mockup. */
+
 /* ============================================================
    Dashboard — coquille & navigation (Premium v2)
    ============================================================ */

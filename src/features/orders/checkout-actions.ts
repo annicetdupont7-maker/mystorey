@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { orderFormSchema } from "./schemas";
 import { buildCheckoutMessage, type OrderMessageView } from "./messages";
 import { buildWhatsAppLink } from "@/features/storefront/whatsapp";
+import { isPlausiblePhone } from "@/features/phone/phone";
 
 export type CheckoutActionState = {
   error?: string;
@@ -37,6 +38,8 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
     lines: parsedLines,
   });
   if (!parsed.success) return { error: "Vérifiez vos informations de commande.", fieldErrors: parsed.error.flatten().fieldErrors };
+  // The shop must be able to call the client back, even if she never sends the WhatsApp.
+  if (!isPlausiblePhone(parsed.data.customerPhone)) return { error: "Indiquez votre numéro pour que la boutique puisse vous recontacter.", fieldErrors: { customerPhone: ["Numéro invalide : choisissez le pays et tapez votre numéro."] } };
 
   const supabase = await createSupabaseServerClient();
   try {
@@ -44,7 +47,7 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
     if (!store || !store.whatsapp) return { error: "Cette boutique ne reçoit pas encore de commandes en ligne." };
 
     const productIds = [...new Set(parsed.data.lines.map((line) => line.productId))];
-    const { data: productRows, error: productsError } = await supabase.from("products").select("id,store_id,is_available").eq("store_id", store.id).in("id", productIds);
+    const { data: productRows, error: productsError } = await supabase.from("products").select("id,store_id,is_available").eq("store_id", store.id).eq("is_available", true).in("id", productIds);
     if (productsError) return { error: "Impossible de vérifier les produits de votre panier." };
     const known = new Set((productRows ?? []).map((row) => row.id));
     if (!productIds.every((id) => known.has(id))) return { error: "Un article de votre panier n’est plus disponible." };
@@ -63,11 +66,13 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
       const code = rpcError?.message ?? "";
       if (code.includes("checkout_insufficient_stock")) return { error: "La quantité demandée n’est plus disponible. Ajustez votre panier." };
       if (code.includes("checkout_variant_not_found")) return { error: "Le choix sélectionné n’est plus disponible. Choisissez-en un autre." };
+      if (code.includes("checkout_product_not_found")) return { error: "Un article de votre panier n’est plus disponible. Retirez-le puis réessayez." };
+      if (code.includes("checkout_store_unavailable")) return { error: "Cette boutique ne reçoit pas de commandes pour le moment." };
       return { error: "Impossible d’enregistrer votre commande. Réessayez." };
     }
 
     const order = created as unknown as OrderMessageView;
-    const message = buildCheckoutMessage(order);
+    const message = buildCheckoutMessage(order, store.name);
     const waLink = buildWhatsAppLink(store.whatsapp, message);
     if (!waLink) return { error: "Impossible de préparer la conversation WhatsApp." };
 

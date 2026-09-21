@@ -14,21 +14,29 @@ export type OrderMessageView = {
 
 const orderTag = (order_number: string | null | undefined) => (order_number ? `#${order_number}` : "#……");
 
-export function buildCheckoutMessage(order: OrderMessageView): string {
+/**
+ * The message the CLIENT sends to the seller from her own WhatsApp once the order is
+ * saved. It used to be worded as the shop's receipt ("Merci pour votre commande ❤️"),
+ * which read backwards coming from the client's phone.
+ */
+export function buildCheckoutMessage(order: OrderMessageView, storeName?: string): string {
   const lines = order.items
     .map((item) => `• ${item.quantity} × ${item.name} — ${formatPrice(item.unitPrice)} = ${formatPrice(item.unitPrice * item.quantity)}`)
     .join("\n");
   const parts = [
-     "🛍️ Nouvelle commande MYSTOREY",
+    storeName?.trim() ? `Bonjour ${storeName.trim()} 👋` : "Bonjour 👋",
+    "Je viens de passer une commande sur votre boutique.",
     "",
-    `Commande ${orderTag(order.order_number)}`,
+    `🧾 Commande ${orderTag(order.order_number)}`,
+    lines,
+    `Total : ${formatPrice(order.total)}`,
+    "",
     `Client : ${order.customer_name.trim() || "—"}`,
   ];
   if (order.customer_phone.trim()) parts.push(`Téléphone : ${order.customer_phone.trim()}`);
   if (order.customer_address.trim()) parts.push(`Livraison : ${order.customer_address.trim()}`);
-  parts.push("", "Produits :", lines, "", `Total : ${formatPrice(order.total)}`);
   if (order.note.trim()) parts.push("", "Note :", order.note.trim());
-     parts.push("", "Merci pour votre commande ❤️ (gérée avec MYSTOREY)");
+  parts.push("", "Pouvez-vous me confirmer la disponibilité et la livraison ? Merci !");
   return parts.join("\n");
 }
 

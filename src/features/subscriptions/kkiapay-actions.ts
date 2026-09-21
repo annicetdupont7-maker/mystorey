@@ -1,4 +1,5 @@
 "use server";
+import { appUrl } from "@/lib/app-url";
 
 import { redirect } from "next/navigation";
 import { getMyFirstStore } from "@/features/stores/data";
@@ -41,17 +42,17 @@ export async function initiateKkiapayPayment(formData: FormData): Promise<void> 
     storeId: store.id,
     planId: plan.id,
     amount: plan.price,
-    description: `Abonnement ${plan.name} - NEXORA / MYSTOREY`,
-    returnUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions/success`,
-    cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions`,
+    description: `Abonnement MYSTOREY ${plan.name}`,
+    returnUrl: `${appUrl()}/dashboard/subscriptions/success`,
+    cancelUrl: `${appUrl()}/dashboard/subscriptions`,
   });
 
   const { data: payment } = await supabase
-    .from("fedapay_payments")
+    .from("kkiapay_payments")
     .insert({
       store_id: store.id,
       plan_id: plan.id,
-      fedapay_transaction_id: paymentIntent.id,
+      kkiapay_transaction_id: paymentIntent.id,
       amount: plan.price,
       status: "pending",
       metadata: { user_email: user.email, provider: "kkiapay" },

@@ -1294,3 +1294,88 @@
     gap: 2rem;
   }
 }
+
+/* ================================================================
+   Lancement 2026-09 — le problème réel (conversation WhatsApp),
+   la réponse (comparatif) et un titre qui tient sur un téléphone.
+   ================================================================ */
+.vendoflow-page .vf-chat {
+  display: grid;
+  gap: .55rem;
+  align-content: start;
+  padding: 1.25rem 1rem 1rem;
+  border-radius: 1.5rem;
+  background: #efe6dc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40' viewBox='0 0 40 40'%3E%3Ccircle cx='3' cy='3' r='1.2' fill='%23e2d4c6'/%3E%3C/svg%3E");
+  border: 1px solid var(--vf-border);
+  box-shadow: var(--vf-shadow-md);
+}
+.vendoflow-page .vf-chat-bubble {
+  position: relative;
+  justify-self: start;
+  max-width: 85%;
+  padding: .55rem 3.4rem .55rem .8rem;
+  border-radius: .2rem 1rem 1rem 1rem;
+  background: var(--vf-white);
+  color: var(--vf-text-dark);
+  font-size: .95rem;
+  line-height: 1.35;
+  box-shadow: 0 1px 1px rgba(53, 16, 20, .08);
+}
+.vendoflow-page .vf-chat-bubble small {
+  position: absolute;
+  right: .6rem;
+  bottom: .35rem;
+  font-size: .68rem;
+  color: var(--vf-text-muted);
+}
+.vendoflow-page .vf-chat-seen {
+  justify-self: center;
+  margin-top: .4rem;
+  padding: .3rem .8rem;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, .7);
+  color: var(--vf-text-muted);
+  font-size: .8rem;
+  font-style: italic;
+}
+.vendoflow-page .vf-section--solution { background: var(--vf-bg-subtle); }
+.vendoflow-page .vf-compare {
+  display: grid;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+.vendoflow-page .vf-compare-col {
+  padding: 1.5rem 1.4rem;
+  border-radius: 1.25rem;
+  border: 1px solid var(--vf-border);
+  background: var(--vf-white);
+}
+.vendoflow-page .vf-compare-col h3 { font-size: 1.25rem; margin-bottom: .9rem; }
+.vendoflow-page .vf-compare-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: .7rem; }
+.vendoflow-page .vf-compare-col li { position: relative; padding-left: 1.7rem; line-height: 1.45; color: var(--vf-text-muted); }
+.vendoflow-page .vf-compare-col li::before {
+  position: absolute;
+  left: 0;
+  top: .05rem;
+  display: grid;
+  place-items: center;
+  width: 1.15rem;
+  height: 1.15rem;
+  border-radius: 99px;
+  font-size: .72rem;
+  font-weight: 900;
+}
+.vendoflow-page .vf-compare-col--before li::before { content: "✕"; background: #f3dcdc; color: #a33; }
+.vendoflow-page .vf-compare-col--after { border-color: var(--vf-burgundy); box-shadow: var(--vf-shadow-md); }
+.vendoflow-page .vf-compare-col--after h3 { color: var(--vf-burgundy); }
+.vendoflow-page .vf-compare-col--after li { color: var(--vf-text-dark); }
+.vendoflow-page .vf-compare-col--after li::before { content: "✓"; background: var(--vf-burgundy); color: #fff; }
+@media (min-width: 760px) {
+  .vendoflow-page .vf-compare { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 540px) {
+  .vendoflow-page .vf-hero-title { font-size: 2.3rem; line-height: 1.08; }
+  .vendoflow-page .vf-hero-subtitle { font-size: 1rem; }
+  .vendoflow-page .vf-hero-image-wrapper { margin-top: 2.2rem; }
+  .vendoflow-page .vf-hero-badge { font-size: .68rem; }
+}

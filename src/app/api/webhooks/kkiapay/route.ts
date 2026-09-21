@@ -40,9 +40,9 @@ export async function POST(req: NextRequest) {
     const supabase = createSupabaseServiceClient();
 
     const { data: payment } = await supabase
-      .from("fedapay_payments")
+      .from("kkiapay_payments")
       .select("*")
-      .eq("fedapay_transaction_id", payload.payment_id)
+      .eq("kkiapay_transaction_id", payload.payment_id)
       .maybeSingle();
 
     if (!payment) {
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
           {
             store_id: payment.store_id,
             plan_id: payment.plan_id,
-            fedapay_payment_id: payment.id,
+            kkiapay_payment_id: payment.id,
             status: "active",
             payment_status: "paid",
             provider: "kkiapay",
@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
       }
 
       const { error: paymentError } = await supabase
-        .from("fedapay_payments")
+        .from("kkiapay_payments")
         .update({ status: "approved", updated_at: new Date().toISOString(), metadata: { ...(payment.metadata ?? {}), provider: "kkiapay", webhook_status: payload.status ?? "success" } })
         .eq("id", payment.id);
       if (paymentError) return NextResponse.json({ error: "Failed to update payment" }, { status: 500 });
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     if (payload.event === "payment.failed" || payload.event === "payment.cancelled") {
       await supabase
-        .from("fedapay_payments")
+        .from("kkiapay_payments")
         .update({ status: "declined", updated_at: new Date().toISOString(), metadata: { ...(payment.metadata ?? {}), provider: "kkiapay", webhook_status: payload.status ?? payload.event } })
         .eq("id", payment.id);
 

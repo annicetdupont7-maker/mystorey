@@ -74,8 +74,11 @@ export class KkiapayClient {
       checkout_url?: string;
     };
 
-    const paymentId = data.payment_id ?? data.id ?? crypto.randomUUID();
+    // Never invent an identifier: a payment the webhook cannot match would stay
+    // "pending" forever while the seller has been charged.
+    const paymentId = data.payment_id ?? data.id;
     const checkoutUrl = data.payment_url ?? data.checkout_url ?? "";
+    if (!paymentId || !checkoutUrl) throw new Error("Kkiapay n'a pas renvoyé de transaction exploitable.");
 
     return {
       id: paymentId,

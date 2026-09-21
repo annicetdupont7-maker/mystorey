@@ -40,3 +40,9 @@ export async function variantsAreAvailable(supabase: AnyClient): Promise<boolean
   const { error } = await supabase.from("product_variants").select("id", { count: "exact", head: true }).limit(1);
   return !error;
 }
+
+/** True once products.stock exists (same migration as the variants). */
+export async function productStockSupported(supabase: AnyClient): Promise<boolean> {
+  const { error } = await supabase.from("products").select("stock").limit(1);
+  return !error;
+}

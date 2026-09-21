@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/admin";
 import { createSupabaseServiceClient } from "@/lib/supabase/admin";
 import { roleChangeSchema } from "./schemas";
+import { feedbackStatusSchema } from "@/features/feedback/schemas";
 
 export type AdminActionState = { error?: string; success?: string };
 
@@ -28,4 +29,20 @@ export async function updateUserRole(_: AdminActionState, formData: FormData): P
   revalidatePath("/admin/users");
   revalidatePath(`/admin/users/${userId}`);
   return { success: role === "admin" ? "Compte promu administrateur." : "Compte rétrogradé en vendeur." };
+}
+
+export async function updateFeedbackStatus(_: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  const parsed = feedbackStatusSchema.safeParse({
+    id: String(formData.get("id") ?? ""),
+    status: String(formData.get("status") ?? ""),
+    adminNote: String(formData.get("adminNote") ?? ""),
+  });
+  if (!parsed.success) return { error: "Formulaire invalide." };
+  await requireAdmin();
+  const supabase = createSupabaseServiceClient();
+  const { error } = await supabase.from("feedback").update({ status: parsed.data.status, admin_note: parsed.data.adminNote }).eq("id", parsed.data.id);
+  if (error) return { error: "Impossible de mettre à jour ce message." };
+  revalidatePath("/admin/feedback");
+  revalidatePath("/admin");
+  return { success: "Suivi enregistré ✓" };
 }

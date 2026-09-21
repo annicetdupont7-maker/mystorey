@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { Check } from "lucide-react";
+import { Check, Clock } from "lucide-react";
 import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { getSellerSubscriptionStatus } from "@/features/subscriptions/data";
@@ -13,7 +13,10 @@ export default async function SubscriptionSuccessPage() {
 
   const { data: profile } = await supabase.from("profiles").select("display_name").eq("user_id", user.id).maybeSingle();
   const subscriptionStatus = await getSellerSubscriptionStatus();
-  const subscriptionIsActive = subscriptionStatus.subscription?.status === "active" && subscriptionStatus.subscription.payment_status === "paid";
+  // Only a PAID plan confirmed by the provider's webhook counts as a success. The free
+  // plan is also "active/paid" in the table, so it must never read as "abonnement activé".
+  const subscription = subscriptionStatus.subscription;
+  const subscriptionIsActive = Boolean(subscription && subscription.plan_id !== "free" && subscription.provider !== "manual" && subscription.status === "active" && subscription.payment_status === "paid" && subscriptionStatus.plan.id !== "free");
 
   return (
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
@@ -26,18 +29,17 @@ export default async function SubscriptionSuccessPage() {
 
       <div className="success-panel">
         <div className="success-icon">
-          <Check size={32} />
+          {subscriptionIsActive ? <Check size={32} /> : <Clock size={32} />}
         </div>
 
         <div className="success-content">
           <h2>{subscriptionIsActive ? "Merci pour votre confiance" : "Confirmation en cours"}</h2>
-          <p>{subscriptionIsActive ? <>Vous avez souscrit avec succès à <strong>{subscriptionStatus.plan.name}</strong>.</> : "Votre abonnement sera activé après confirmation du paiement par Kkiapay."}</p>
+          <p>{subscriptionIsActive ? <>Vous avez souscrit avec succès à <strong>{subscriptionStatus.plan.name}</strong>.</> : "Aucun paiement confirmé pour le moment. Votre plan changera uniquement quand le prestataire de paiement nous aura confirmé la transaction — vous n’avez rien à refaire."}</p>
 
           {subscriptionIsActive && <ul className="success-features">
               <li>{subscriptionStatus.plan.productLimit ? `Jusqu'à ${subscriptionStatus.plan.productLimit} produits` : "Produits illimités"}</li>
               <li>Gestion complète de votre boutique</li>
               <li>Commandes WhatsApp intégrées</li>
-              <li>Support client prioritaire</li>
             </ul>}
 
           <div className="success-actions">

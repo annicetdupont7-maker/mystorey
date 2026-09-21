@@ -1,7 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { ArrowRight, TrendingUp } from "lucide-react";
+import { headers } from "next/headers";
+import { AlertTriangle, ArrowRight, TrendingUp } from "lucide-react";
 import { getMyFirstStore } from "@/features/stores/data";
 import { getProducts, type ProductWithFlags } from "@/features/products/data";
 import { getOrders } from "@/features/orders/data";
@@ -9,7 +10,9 @@ import { computeOrderOverview, countOrdersByProduct } from "@/features/orders/ov
 import { buildInsights, buildTodos } from "@/features/insights/rules";
 import { InsightCard } from "@/features/insights/components/insight-card";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
-import { StoreShareSheet } from "@/features/sharing/components/share-sheet";
+import { LaunchChecklist } from "@/features/stores/components/launch-checklist";
+import { buildLaunchSteps, hasWhatsapp, isLaunchReady } from "@/features/stores/launch";
+import { originFromHeaders } from "@/lib/app-url";
 import { getSellerSubscriptionStatus } from "@/features/subscriptions/data";
 import { formatPrice } from "@/features/storefront/storefront-types";
 import { StatusBadge } from "@/features/orders/components/status-badge";
@@ -17,7 +20,8 @@ import type { ProductForInsight } from "@/features/insights/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
+  const { welcome } = await searchParams;
   const { store, user, supabase } = await getMyFirstStore();
   if (!store) redirect("/onboarding");
 
@@ -59,6 +63,19 @@ export default async function DashboardPage() {
   ];
   const published = store.status === "published";
   const publicPath = `/store/${store.slug}`;
+  const publicUrl = `${originFromHeaders(await headers())}${publicPath}`;
+  const theme = Array.isArray(store.store_themes) ? store.store_themes[0] : store.store_themes;
+  const launchSteps = buildLaunchSteps({
+    storeStatus: store.status,
+    whatsapp: store.whatsapp,
+    themeChosen: Boolean(theme?.preset_id),
+    productCount: products.length,
+    publishedProductCount: products.filter((p) => p.is_available).length,
+  });
+  const launchReady = isLaunchReady(launchSteps);
+  // A published shop without a number is the worst state: clients arrive and cannot order.
+  const cannotReceiveOrders = published && !hasWhatsapp(store.whatsapp);
+  const hasActivity = orders.length > 0;
   const recentOrders = orders.slice(0, 5);
   const salesByDay = Array.from({ length: 7 }, (_, index) => {
     const date = new Date();
@@ -77,11 +94,24 @@ export default async function DashboardPage() {
 
   return (
     <DashboardShell name={profile?.display_name ?? ""} storeName={store.name} storeSlug={store.slug} status={store.status} storeLogoUrl={store.logo_url} storeDescription={store.description}>
-      {store.status !== "published" && <section className="publish-next-step"><div><p className="vf-eyebrow">Dernière étape</p><h2>Votre boutique est presque prête</h2><p>Choisissez une apparence, puis publiez votre boutique pour la rendre accessible à vos clientes.</p><ol><li className="is-done">Boutique créée</li><li className={products.length > 0 ? "is-done" : ""}>Produits ajoutés</li><li>Apparence à choisir</li><li>Boutique à publier</li></ol></div><Link className="vf-button" href="/dashboard/storefront/appearance">Choisir un thème et publier ma boutique <ArrowRight size={16} /></Link></section>}
+      {cannotReceiveOrders && (
+        <section className="urgent-banner" role="alert">
+          <AlertTriangle size={20} aria-hidden="true" />
+          <div>
+            <strong>Vos clientes ne peuvent pas commander</strong>
+            <p>Votre boutique est en ligne mais n’a pas de numéro WhatsApp : les commandes sont bloquées. Ajoutez-le, cela prend 30 secondes.</p>
+          </div>
+          <Link className="vf-button vf-button--sm" href="/dashboard/storefront/identity#whatsapp">Ajouter mon numéro</Link>
+        </section>
+      )}
+      {(!launchReady || !hasActivity) && (
+        <LaunchChecklist steps={launchSteps} storeId={store.id} storeName={store.name} storeSlug={store.slug} publicUrl={publicUrl} welcome={welcome === "1"} />
+      )}
       {ordersError && <p className="banner-warn" role="status">{ordersError} Exécutez la migration &quot;orders &amp; produit vedette&quot; dans le Supabase SQL Editor pour activer le suivi des commandes.</p>}
       
-      {/* Hero Sales KPI - Prominent */}
-      <section className="dashboard-sales-hero">
+      {/* Sales only mean something once there are orders: a new seller sees her
+          checklist first instead of a row of zeros. */}
+      {hasActivity && <section className="dashboard-sales-hero">
         <div className="sales-kpi-large">
           <div className="sales-kpi-header">
             <p className="vf-eyebrow">Ventes</p>
@@ -101,7 +131,7 @@ export default async function DashboardPage() {
             ))}
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* Secondary KPIs */}
       <section className="kpis-secondary" aria-label="Métriques secondaires">
@@ -119,20 +149,9 @@ export default async function DashboardPage() {
         ))}
       </section>
 
-      {/* The activation moment: a published shop is worth nothing unshared, so the link
-          and the share action sit on the home screen rather than behind a header icon. */}
-      {published && (
-        <section className="share-spotlight">
-          <div className="share-spotlight-copy">
-            <p className="vf-eyebrow">Votre boutique est en ligne</p>
-            <h2>Partagez votre lien à vos clientes</h2>
-            <p className="share-spotlight-url">{publicPath}</p>
-          </div>
-          <div className="share-spotlight-actions">
-            <StoreShareSheet storeName={store.name} storeSlug={store.slug} />
-            <Link className="vf-button vf-button--ghost" href={publicPath} target="_blank" rel="noopener noreferrer">Voir ma boutique</Link>
-          </div>
-        </section>
+      {/* Once orders flow, the link stays one tap away without the full checklist. */}
+      {launchReady && hasActivity && (
+        <LaunchChecklist steps={launchSteps} storeId={store.id} storeName={store.name} storeSlug={store.slug} publicUrl={publicUrl} />
       )}
 
       {/* §10: unconfirmed orders are the closest thing to an abandoned cart in a
@@ -142,9 +161,9 @@ export default async function DashboardPage() {
           <div>
             <p className="vf-eyebrow">À récupérer</p>
             <h2>{overview.pendingCount} commande{overview.pendingCount > 1 ? "s" : ""} en attente de confirmation</h2>
-            <p className="muted">Soit {formatPrice(overview.pendingRevenue)} encore en jeu. Un message WhatsApp préparé suffit souvent à les conclure.</p>
+            <p className="muted">Soit {formatPrice(overview.pendingRevenue)} en jeu. Confirmez-les avec vos clientes sur WhatsApp, puis mettez à jour leur statut.</p>
           </div>
-          <Link className="vf-button" href="/dashboard/marketing">Relancer mes clientes <ArrowRight size={16} aria-hidden="true" /></Link>
+          <Link className="vf-button" href="/dashboard/orders?status=pending">Confirmer mes commandes <ArrowRight size={16} aria-hidden="true" /></Link>
         </section>
       )}
 
@@ -171,6 +190,8 @@ export default async function DashboardPage() {
         )}
       </section>
 
+      {/* Priorities, best sellers and insights need real orders to say anything useful. */}
+      {hasActivity && <>
       {/* À faire section - Action queue */}
       <section className="panel">
         <div className="panel-head">
@@ -257,6 +278,7 @@ export default async function DashboardPage() {
           )}
         </div>
       </section>
+      </>}
     </DashboardShell>
   );
 }

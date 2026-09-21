@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "./experience.css";
+import { appUrl as resolveAppUrl } from "@/lib/app-url";
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL?.trim() || "https://mystorey.app";
+const appUrl = resolveAppUrl();
 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
@@ -10,7 +12,7 @@ export const metadata: Metadata = {
     template: "%s | MYSTOREY",
   },
   description:
-    "MYSTOREY aide les vendeuses à créer leur boutique, gérer leurs produits et commandes, relancer leurs clientes et développer leur activité simplement.",
+    "Arrêtez de renvoyer les mêmes photos et les mêmes prix sur WhatsApp. Créez gratuitement votre boutique MYSTOREY : un seul lien, vos produits, vos prix, et des commandes claires.",
   applicationName: "MYSTOREY",
   creator: "MYSTOREY",
   publisher: "MYSTOREY",
@@ -40,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "MYSTOREY — Votre boutique, votre histoire",
     description:
-      "Créez votre vitrine, gérez vos produits et vos commandes, et développez votre boutique depuis votre téléphone.",
+      "Un seul lien pour montrer tous vos produits et recevoir des commandes claires, depuis votre téléphone. Gratuit pour commencer.",
     url: appUrl,
     siteName: "MYSTOREY",
     locale: "fr_FR",
@@ -53,7 +55,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "MYSTOREY",
     description:
-      "Créez votre boutique, recevez vos commandes et relancez vos clientes simplement.",
+      "Un seul lien pour vos produits, vos prix et vos commandes. Gratuit pour commencer.",
     images: [{ url: "/og-card.png", alt: "MYSTOREY — Votre boutique, votre histoire" }],
   },
 };

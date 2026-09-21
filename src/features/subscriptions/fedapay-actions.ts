@@ -1,4 +1,5 @@
 "use server";
+import { appUrl } from "@/lib/app-url";
 
 import { redirect } from "next/navigation";
 import { getMyFirstStore } from "@/features/stores/data";
@@ -38,8 +39,8 @@ export async function initiateFedapayPayment(formData: FormData): Promise<void> 
     planId: plan.id,
     amount: plan.price,
     description: `Abonnement ${plan.name} - MYSTOREY`,
-    returnUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions/success`,
-    cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/dashboard/subscriptions`,
+    returnUrl: `${appUrl()}/dashboard/subscriptions/success`,
+    cancelUrl: `${appUrl()}/dashboard/subscriptions`,
   });
 
   // Record the payment attempt
