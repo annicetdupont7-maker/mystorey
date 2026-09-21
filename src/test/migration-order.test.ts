@@ -10,6 +10,8 @@ it("keeps migration dependencies in executable order", () => {
   expect(position("20260828_subscription_plans.sql")).toBeLessThan(position("20260901_wave_payments.sql"));
   expect(position("20260828_subscription_plans.sql")).toBeLessThan(position("20260902_fedapay_payments.sql"));
   expect(position("20260904_launch_security.sql")).toBeGreaterThan(position("20260902_fedapay_payments.sql"));
+  expect(position("20260914_kkiapay_payments.sql")).toBeGreaterThan(position("20260904_launch_security.sql"));
+  expect(position("20260921_launch_hardening.sql")).toBeGreaterThan(position("20260912_product_variants.sql"));
   expect(position("20260906_reengagement.sql")).toBeGreaterThan(position("20260905_subscription_plans.sql"));
 });
 
@@ -26,6 +28,9 @@ describe("migration safety guards", () => {
     expect(security).toContain("alter table public.seller_subscriptions enable row level security");
     expect(security).toContain("alter table public.wave_payments enable row level security");
     expect(security).toContain("alter table public.fedapay_payments enable row level security");
+    const kkiapay = readFileSync(join(migrationsDir, "20260914_kkiapay_payments.sql"), "utf8");
+    expect(kkiapay).toContain("create table if not exists public.kkiapay_payments");
+    expect(kkiapay).toContain("alter table public.kkiapay_payments enable row level security");
     expect(reengagement).toContain("alter table public.customer_contacts enable row level security");
     expect(reengagement).toContain("alter table public.reengagement_logs enable row level security");
   });
