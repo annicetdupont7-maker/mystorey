@@ -26,8 +26,8 @@ export default async function StoreIdentityPage() {
       <section className="page-head">
         <div>
           <p className="vf-eyebrow">Ma boutique</p>
-          <h1>Votre identité.</h1>
-          <p className="muted">Le logo, la phrase d’accroche et l’histoire qui font de votre boutique une vraie marque. Tout ce que vous modifiez ici apparaît immédiatement dans l’aperçu.</p>
+          <h1>Logo &amp; description</h1>
+          <p className="muted">Votre logo, une phrase d’accroche et quelques mots sur votre boutique : c’est ce qui rassure vos clientes. L’aperçu à côté se met à jour pendant que vous écrivez.</p>
         </div>
       </section>
       <IdentityForm

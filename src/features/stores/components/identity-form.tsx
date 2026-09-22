@@ -1,6 +1,7 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
-import { useActionState, useRef, useState } from "react";
+import { startTransition, useActionState, useRef, useState, type FormEvent } from "react";
+import { compressImage } from "@/features/products/image-compress";
 import { PhoneField } from "@/features/phone/phone-field";
 import { Storefront } from "@/features/storefront/components";
 import { demoProducts, type ProductView } from "@/features/storefront/storefront-types";
@@ -40,6 +41,32 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
   const removeLogoRef = useRef<HTMLInputElement>(null);
   const removeCoverRef = useRef<HTMLInputElement>(null);
 
+  const [preparing, setPreparing] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
+
+  // Phone photos are shrunk before upload: a 6 MB logo used to be refused ("5 Mo max").
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    setPhotoError(null);
+    setPreparing(true);
+    try {
+      for (const [field, maxSide] of [["logo", 800], ["cover", 1800]] as const) {
+        const file = data.get(field);
+        if (file instanceof File && file.size > 0) {
+          const compressed = await compressImage(file, { maxSide });
+          data.set(field, compressed, compressed.name);
+        }
+      }
+    } catch {
+      setPreparing(false);
+      setPhotoError("Cette image n’a pas pu être lue. Essayez une photo JPG ou une capture d’écran.");
+      return;
+    }
+    setPreparing(false);
+    startTransition(() => action(data));
+  }
+
   const previewProducts = products && products.length > 0 ? products : demoProducts;
   const previewLogo = logoPreview ?? logoUrlState;
   const previewCover = coverPreview ?? coverUrlState;
@@ -69,7 +96,7 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
 
   return (
     <div className="identity-layout">
-      <form className="identity-form" action={action}>
+      <form className="identity-form" onSubmit={submit}>
         <input type="hidden" name="storeId" value={storeId} />
         <input ref={removeLogoRef} type="hidden" name="removeLogo" defaultValue="false" />
         <input ref={removeCoverRef} type="hidden" name="removeCover" defaultValue="false" />
@@ -78,8 +105,8 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
           <div className="identity-card-head">
             <span className="identity-step">1</span>
             <div>
-              <h2>Identité</h2>
-              <p>Le logo et le nom qui représenteront votre boutique, avec une phrase d’accroche (slogan).</p>
+              <h2>Logo et nom</h2>
+              <p>Votre logo (ou une jolie photo), le nom de votre boutique et une petite phrase d’accroche.</p>
             </div>
           </div>
 
@@ -94,9 +121,9 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
             )}
             <div className="logo-actions">
               <button type="button" className="vf-button vf-button--ghost" onClick={() => logoInputRef.current?.click()}>{previewLogo ? "Remplacer" : "Téléverser un logo"}</button>
-              <input ref={logoInputRef} className="visually-hidden" type="file" name="logo" accept="image/png,image/jpeg,image/webp" onChange={(e) => pickLogo(e.target.files?.[0] ?? null)} />
+              <input ref={logoInputRef} className="visually-hidden" type="file" name="logo" accept="image/*" onChange={(e) => pickLogo(e.target.files?.[0] ?? null)} />
               {previewLogo && <button type="button" className="text-button" onClick={clearLogo}>Retirer</button>}
-              <small className="field-hint">PNG, JPG ou WebP · 5 Mo max · idéalement carré et transparent.</small>
+              <small className="field-hint">Une photo de votre téléphone convient. Idéalement carrée.</small>
             </div>
           </div>
 
@@ -114,12 +141,12 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
           <div className="identity-card-head">
             <span className="identity-step">2</span>
             <div>
-              <h2>Présentation</h2>
-              <p>Racontez votre histoire dans la section « À propos » de votre boutique.</p>
+              <h2>Description de la boutique</h2>
+              <p>Ce que vous vendez, d’où vous livrez, ce qui vous rend unique. Vos clientes la lisent dans « À propos ».</p>
             </div>
           </div>
-          <label className="field"><span>Présentation</span>
-            <textarea name="description" value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} maxLength={500} rows={5} placeholder="Née d’une passion pour les matières nobles, notre maison crée des pièces uniques…" />
+          <label className="field"><span>Description</span>
+            <textarea name="description" value={draftDescription} onChange={(e) => setDraftDescription(e.target.value)} maxLength={500} rows={5} placeholder="Ex. : Robes et ensembles en wax faits main à Cotonou. Livraison partout au Bénin sous 48 h." />
             <small className="field-hint">{draftDescription.length}/500 caractères.</small>
           </label>
         </section>
@@ -133,7 +160,7 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
             </div>
           </div>
           <label className="field"><span>Image de couverture</span>
-            <input ref={coverInputRef} className="visually-hidden" type="file" name="cover" accept="image/png,image/jpeg,image/webp" onChange={(e) => pickCover(e.target.files?.[0] ?? null)} />
+            <input ref={coverInputRef} className="visually-hidden" type="file" name="cover" accept="image/*" onChange={(e) => pickCover(e.target.files?.[0] ?? null)} />
             <div className="cover-upload" onClick={() => coverInputRef.current?.click()}>
               {previewCover ? <img src={previewCover} alt="Aperçu de la couverture" /> : <span className="cover-upload-empty">+ <span>Ajouter une couverture</span></span>}
             </div>
@@ -156,12 +183,13 @@ export function IdentityForm({ storeId, name, slogan, description, whatsapp, log
           <PhoneField name="whatsapp" id="whatsapp" label="Numéro WhatsApp" defaultValue={whatsapp} hint="Indispensable : vos clientes vous envoient leur commande sur ce numéro." error={state.fieldErrors?.whatsapp?.[0]} />
         </section>
 
+        {photoError && <p className="form-error" role="alert">{photoError}</p>}
         {state.error && <p className="form-error" role="alert">{state.error}</p>}
         {state.success && <p className="form-success" role="status">{state.success}</p>}
         {state.fieldErrors?.name && <p className="form-error">{state.fieldErrors.name[0]}</p>}
         {state.fieldErrors?.slogan && <p className="form-error">{state.fieldErrors.slogan[0]}</p>}
         {state.fieldErrors?.description && <p className="form-error">{state.fieldErrors.description[0]}</p>}
-        <button className="vf-button vf-button--dark identity-submit" disabled={pending}>{pending ? "Enregistrement…" : "Enregistrer mon identité"}</button>
+        <button className="vf-button vf-button--dark identity-submit" disabled={pending || preparing}>{preparing ? "Préparation des images…" : pending ? "Enregistrement…" : "Enregistrer"}</button>
       </form>
 
       <aside className="identity-preview">

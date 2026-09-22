@@ -23,6 +23,11 @@ export default function ContactPage() {
             <Link className="vf-button" href="/dashboard/help">Écrire depuis mon espace</Link>
           </div>
           <div className="contact-option">
+            <strong>Mot de passe oublié ou compte bloqué</strong>
+            <p>Écrivez-nous en indiquant l’adresse email de votre compte et votre numéro WhatsApp : nous vous envoyons sur WhatsApp un lien pour choisir un nouveau mot de passe.</p>
+            <a className="vf-button" href={`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent("MYSTOREY — mot de passe oublié")}&body=${encodeURIComponent("Bonjour, j’ai oublié mon mot de passe.\nAdresse email de mon compte :\nMon numéro WhatsApp :")}`}>Demander un lien</a>
+          </div>
+          <div className="contact-option">
             <strong>Par email</strong>
             <p>Pour toute autre demande (partenariat, presse, données personnelles).</p>
             <a className="vf-button vf-button--ghost" href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>

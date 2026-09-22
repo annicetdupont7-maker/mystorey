@@ -107,6 +107,23 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       {(!launchReady || !hasActivity) && (
         <LaunchChecklist steps={launchSteps} storeId={store.id} storeName={store.name} storeSlug={store.slug} publicUrl={publicUrl} welcome={welcome === "1"} />
       )}
+      {/* Not required to publish, but a logo and a few words are what make clients trust a shop. */}
+      {(!store.logo_url || !store.description?.trim()) && (
+        <section className="identity-nudge">
+          <div>
+            <p className="vf-eyebrow">Conseillé</p>
+            <strong>Donnez un visage à votre boutique</strong>
+            <p className="muted">
+              {!store.logo_url && !store.description?.trim()
+                ? "Ajoutez votre logo et une courte description : vos clientes savent tout de suite chez qui elles commandent."
+                : !store.logo_url
+                  ? "Ajoutez votre logo (une photo de votre téléphone convient) : il apparaît en haut de votre boutique."
+                  : "Ajoutez une courte description : ce que vous vendez, d’où vous livrez."}
+            </p>
+          </div>
+          <Link className="vf-button vf-button--ghost vf-button--sm" href="/dashboard/storefront/identity">{!store.logo_url ? "Ajouter mon logo" : "Écrire ma description"} <ArrowRight size={14} aria-hidden="true" /></Link>
+        </section>
+      )}
       {ordersError && <p className="banner-warn" role="status">{ordersError} Exécutez la migration &quot;orders &amp; produit vedette&quot; dans le Supabase SQL Editor pour activer le suivi des commandes.</p>}
       
       {/* Sales only mean something once there are orders: a new seller sees her

@@ -4,6 +4,7 @@ import { ArrowLeft, Building2, ExternalLink, Eye } from "lucide-react";
 import { formatDate } from "@/features/admin/stats";
 import { getAdminUserById } from "@/features/admin/data";
 import { UserRoleForm } from "@/features/admin/components/user-role-form";
+import { AccountAccess } from "@/features/admin/components/account-access";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +44,10 @@ export default async function AdminUserDetailPage({ params }: { params: Promise<
             <div><dt>Inscription</dt><dd>{formatDate(user.created_at)}</dd></div>
             <div><dt>Statut</dt><dd>{user.banned ? <span className="tag" style={{ background: "#f8dcd6", color: "#c23a2d" }}>Banni</span> : user.active ? <span className="tag tag--ok">Actif</span> : <span className="tag">Non confirmé</span>}</dd></div>
           </dl>
+          <div className="admin-section-note">
+            <p className="vf-eyebrow">Accès au compte</p>
+            <AccountAccess userId={user.id} name={user.name} email={user.email} whatsapp={stores.find((s) => s.whatsapp)?.whatsapp ?? null} />
+          </div>
           <div className="admin-section-note">
             <p className="vf-eyebrow">Rôle</p>
             <p className="muted">Le rôle contrôle l’accès à l’espace d’administration. Toute modification est sensible.</p>

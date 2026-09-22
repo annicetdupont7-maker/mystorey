@@ -2,7 +2,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/features/auth/admin";
 import { createSupabaseServiceClient } from "@/lib/supabase/admin";
-import { roleChangeSchema } from "./schemas";
+import { headers } from "next/headers";
+import { accountRefSchema, emailChangeSchema, roleChangeSchema } from "./schemas";
+import { originFromHeaders } from "@/lib/app-url";
 import { feedbackStatusSchema } from "@/features/feedback/schemas";
 
 export type AdminActionState = { error?: string; success?: string };
@@ -45,4 +47,43 @@ export async function updateFeedbackStatus(_: AdminActionState, formData: FormDa
   revalidatePath("/admin/feedback");
   revalidatePath("/admin");
   return { success: "Suivi enregistré ✓" };
+}
+
+export type ResetLinkState = { error?: string; link?: string };
+
+/**
+ * A password-reset link the owner sends to a seller on WhatsApp. MYSTOREY does not rely
+ * on email (sellers live on WhatsApp, and auth emails were never reliable), so this is
+ * the way back in for someone who forgot her password. Nothing is emailed: the link is
+ * only shown to the admin. It opens /auth/callback, which verifies it server-side.
+ */
+export async function generatePasswordResetLink(_: ResetLinkState, formData: FormData): Promise<ResetLinkState> {
+  const parsed = accountRefSchema.safeParse({ userId: String(formData.get("userId") ?? "") });
+  if (!parsed.success) return { error: "Compte introuvable." };
+  await requireAdmin();
+  const supabase = createSupabaseServiceClient();
+  const { data: found } = await supabase.auth.admin.getUserById(parsed.data.userId);
+  const email = found?.user?.email;
+  if (!email) return { error: "Ce compte n’a pas d’adresse email." };
+  const { data, error } = await supabase.auth.admin.generateLink({ type: "recovery", email });
+  const token = data?.properties?.hashed_token;
+  if (error || !token) return { error: "Impossible de générer le lien. Réessayez." };
+  const origin = originFromHeaders(await headers());
+  return { link: `${origin}/auth/callback?token_hash=${encodeURIComponent(token)}&type=recovery` };
+}
+
+/** Fix a mistyped address (the account keeps its password, shop and orders). */
+export async function updateUserEmail(_: AdminActionState, formData: FormData): Promise<AdminActionState> {
+  const parsed = emailChangeSchema.safeParse({ userId: String(formData.get("userId") ?? ""), email: String(formData.get("email") ?? "") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Formulaire invalide." };
+  await requireAdmin();
+  const supabase = createSupabaseServiceClient();
+  const { error } = await supabase.auth.admin.updateUserById(parsed.data.userId, { email: parsed.data.email, email_confirm: true });
+  if (error) {
+    if (error.code === "email_exists" || /already/i.test(error.message)) return { error: "Cette adresse est déjà utilisée par un autre compte." };
+    return { error: "Impossible de modifier l’adresse. Réessayez." };
+  }
+  revalidatePath(`/admin/users/${parsed.data.userId}`);
+  revalidatePath("/admin/users");
+  return { success: `Adresse mise à jour : ${parsed.data.email}. Le compte se connecte désormais avec elle.` };
 }

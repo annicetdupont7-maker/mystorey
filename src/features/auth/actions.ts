@@ -68,7 +68,8 @@ export async function requestPasswordReset(_: ActionState, formData: FormData): 
     const origin=originFromHeaders(await headers());
     const redirectTo=`${origin}/auth/callback?next=/reset-password`;
     const { error }=await supabase.auth.resetPasswordForEmail(parsed.data.email,{redirectTo});
-    if(error)return {error:"Impossible d’envoyer le lien pour le moment. Vérifiez l’adresse et réessayez."};
+    // Email delivery is not guaranteed: the way back in is a link the team sends on WhatsApp.
+    if(error)return {error:"L’envoi par email ne fonctionne pas pour le moment. Écrivez à l’équipe MYSTOREY (page Contact) : elle vous enverra un lien sur WhatsApp pour choisir un nouveau mot de passe."};
     return {success:"Si un compte existe avec cette adresse, un email de récupération vient d’être envoyé — vérifiez votre boîte mail (pensez aux courriers indésirables)."};
   } catch {
     return {error:"Le service est momentanément indisponible. Réessayez dans quelques minutes."};

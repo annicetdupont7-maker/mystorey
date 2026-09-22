@@ -6,3 +6,9 @@ export const roleChangeSchema = z.object({
 });
 
 export type RoleChangeInput = z.infer<typeof roleChangeSchema>;
+export const accountRefSchema = z.object({ userId: z.string().uuid("Compte introuvable.") });
+
+export const emailChangeSchema = z.object({
+  userId: z.string().uuid("Compte introuvable."),
+  email: z.email("Adresse email invalide.").trim().toLowerCase(),
+});

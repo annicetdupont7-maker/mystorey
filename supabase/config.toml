@@ -16,14 +16,19 @@ additional_redirect_urls = [
   "http://localhost:3000/**",
 ]
 
-# French templates (token_hash links, verified by /auth/callback — unlike the default
-# PKCE link they still work when the email is opened in another app or phone).
-# Supabase refuses template changes on the free plan until a custom SMTP is set:
-# uncomment these two blocks once [auth.email.smtp] is configured.
-# [auth.email.template.confirmation]
-# subject = "Confirmez votre compte MYSTOREY"
-# content_path = "./supabase/templates/confirmation.html"
-#
-# [auth.email.template.recovery]
-# subject = "Choisissez un nouveau mot de passe MYSTOREY"
-# content_path = "./supabase/templates/recovery.html"
+# Emails go through Brevo (free transactional SMTP): host smtp-relay.brevo.com,
+# port 587, user ba9513001@smtp-brevo.com. The SMTP block is managed in the Supabase
+# dashboard because the CLI would require the key in this file — it never goes here.
+
+[auth.rate_limit]
+email_sent = 100
+
+# French templates with token_hash links, verified by /auth/callback: unlike the
+# default PKCE link they still work when the email is opened in another app or phone.
+[auth.email.template.confirmation]
+subject = "Confirmez votre compte MYSTOREY"
+content_path = "./supabase/templates/confirmation.html"
+
+[auth.email.template.recovery]
+subject = "Choisissez un nouveau mot de passe MYSTOREY"
+content_path = "./supabase/templates/recovery.html"

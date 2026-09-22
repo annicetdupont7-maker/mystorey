@@ -87,7 +87,7 @@ export function DashboardShell({ name, storeName, storeSlug, status, storeLogoUr
             <div className="sidebar-section-links">
               <Link href="/dashboard/storefront/identity" className={`sidebar-link${pathname === "/dashboard/storefront/identity" ? " is-active" : ""}`} aria-current={pathname === "/dashboard/storefront/identity" ? "page" : undefined} onClick={() => setSidebarOpen(false)}>
                 <BadgeCheck size={14} aria-hidden="true" />
-                Identité
+                Logo &amp; description
               </Link>
               <Link href="/dashboard/storefront/appearance" className={`sidebar-link${pathname.startsWith("/dashboard/storefront/appearance") ? " is-active" : ""}`} aria-current={pathname.startsWith("/dashboard/storefront/appearance") ? "page" : undefined} onClick={() => setSidebarOpen(false)}>
                 <Store size={14} aria-hidden="true" />

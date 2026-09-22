@@ -234,12 +234,12 @@ a.auth-orb { text-decoration: none; }
 .settings-publish h2 { margin-top: 0; }
 
 /* ---------- Contact ---------- */
-.contact-card { max-width: 720px; margin: 2.5rem auto; padding: 1.6rem; }
+.contact-card { max-width: 960px; margin: 2.5rem auto; padding: 1.6rem; }
 .contact-options { display: grid; gap: 1rem; margin: 1.3rem 0; }
 .contact-option { display: grid; gap: .5rem; justify-items: start; padding: 1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
 .contact-option p { margin: 0; color: var(--ink-soft); }
 .contact-legal { font-size: .82rem; }
-@media (min-width: 700px) { .contact-options { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 700px) { .contact-options { grid-template-columns: repeat(3, 1fr); } }
 
 /* ---------- Admin ---------- */
 .admin-watch { margin-bottom: 1.2rem; }
@@ -395,3 +395,22 @@ a.auth-orb { text-decoration: none; }
 .pf { padding-bottom: 1.5rem; }
 #variants { max-width: 1080px; margin: 1rem auto 2rem; padding: 1.1rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); }
 #variants h2 { margin-top: 0; font-size: 1.05rem; }
+
+/* Logo & description nudge on the seller home. */
+.identity-nudge { display: grid; gap: .8rem; margin-bottom: 1.4rem; padding: 1rem 1.1rem; border: 1px dashed color-mix(in srgb, var(--brand), transparent 55%); border-radius: var(--radius); background: var(--surface); }
+.identity-nudge strong { display: block; margin: .15rem 0 .2rem; font-size: 1rem; }
+.identity-nudge p { margin: 0; }
+.identity-nudge .vf-button { justify-self: start; }
+@media (min-width: 760px) { .identity-nudge { grid-template-columns: 1fr auto; align-items: center; } }
+
+/* Admin: getting a seller back into her account. */
+.account-access { display: grid; gap: 1rem; margin-top: .4rem; }
+.account-access-block { display: grid; gap: .45rem; padding: .9rem; border: 1px solid var(--line); border-radius: .9rem; background: var(--surface); }
+.account-access-block p { margin: 0; }
+.account-access-title { display: flex; align-items: center; gap: .4rem; font-weight: 800; }
+.account-access-block form { margin-top: .2rem; }
+.account-access-link { display: grid; gap: .45rem; margin-top: .3rem; }
+.account-access-link input, .account-access-email input { width: 100%; min-width: 0; min-height: 2.5rem; padding: .45rem .65rem; border: 1px solid var(--line); border-radius: .7rem; font: inherit; font-size: .85rem; background: #fffdfb; }
+.account-access-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
+.account-access-email { display: flex; flex-wrap: wrap; gap: .5rem; }
+.account-access-email input { flex: 1 1 14rem; }
