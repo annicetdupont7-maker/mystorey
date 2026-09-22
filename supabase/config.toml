@@ -1,0 +1,29 @@
+# Hosted auth settings for the MYSTOREY project, applied with `npx supabase config push`.
+#
+# Deliberately minimal: `config push` only changes what this file declares and leaves
+# every other hosted setting (MFA, SMS, pooler, storage…) exactly as it is. Always run
+# `npx supabase config diff` first.
+
+project_id = "oklkkesfzkqsyimdljxm"
+
+[auth]
+# Links in auth emails fall back to this address. It was http://localhost:3000, so the
+# password-reset link sent to real sellers pointed at a page that does not exist.
+site_url = "https://mystorey.vercel.app"
+additional_redirect_urls = [
+  "https://mystorey.vercel.app/**",
+  "https://mystorey-tau.vercel.app/**",
+  "http://localhost:3000/**",
+]
+
+# French templates (token_hash links, verified by /auth/callback — unlike the default
+# PKCE link they still work when the email is opened in another app or phone).
+# Supabase refuses template changes on the free plan until a custom SMTP is set:
+# uncomment these two blocks once [auth.email.smtp] is configured.
+# [auth.email.template.confirmation]
+# subject = "Confirmez votre compte MYSTOREY"
+# content_path = "./supabase/templates/confirmation.html"
+#
+# [auth.email.template.recovery]
+# subject = "Choisissez un nouveau mot de passe MYSTOREY"
+# content_path = "./supabase/templates/recovery.html"
