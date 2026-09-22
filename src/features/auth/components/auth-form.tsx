@@ -21,7 +21,7 @@ export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mod
           <p className="vf-eyebrow">MYSTOREY</p>
           <h1>{isLogin ? "Content de vous revoir" : "Créez votre boutique gratuite"}</h1>
           <p className="muted">{isLogin ? "Connectez-vous pour retrouver votre boutique, vos produits et vos commandes." : "2 minutes pour créer votre compte. Ensuite, on vous guide étape par étape jusqu’à votre lien de boutique."}</p>
-          {callbackError && <p className="form-error" role="alert">Le lien de confirmation est invalide ou expiré. Connectez-vous ou renvoyez l’email.</p>}
+          {callbackError && <p className="form-error" role="alert">Ce lien est invalide, expiré ou a déjà servi. Connectez-vous, ou demandez un nouveau lien à l’équipe MYSTOREY (page Contact).</p>}
           {resetSuccess && <p className="form-success" role="status">Votre mot de passe a été mis à jour. Connectez-vous avec votre nouveau mot de passe.</p>}
           {signedOut && <p className="form-success" role="status">Déconnexion réussie. À très vite !</p>}
           {!isLogin && <Field key={nameKey} label="Votre prénom" name="displayName" autoComplete="given-name" defaultValue={state.displayName} error={state.fieldErrors?.displayName?.[0]} placeholder="Ex. : Awa" />}
