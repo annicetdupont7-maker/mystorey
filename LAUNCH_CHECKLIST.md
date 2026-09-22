@@ -53,7 +53,8 @@ npm run build
 ## Tests de bout en bout sur le site en ligne (2026-09-22)
 
 Comptes temporaires @example.com créés puis supprimés avec toutes leurs données.
-Vendeuse (mobile) : 20/20. Cliente (mobile) : 18/18. Commandes, sécurité entre vendeuses, admin : 36/36 après corrections.
+Vendeuse (mobile) : 20/20. Cliente (mobile) : 17/18 — le point restant était une erreur du test (texte en majuscules via CSS), pas du site.
+Commandes, sécurité entre vendeuses, admin : 34/36 au premier passage ; les 2 points (chargement lent de l'accueil admin, message traité qui disparaissait) ont été corrigés et revérifiés en ligne.
 
 ## Infrastructure
 
