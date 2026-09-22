@@ -414,3 +414,44 @@ a.auth-orb { text-decoration: none; }
 .account-access-actions { display: flex; flex-wrap: wrap; gap: .45rem; }
 .account-access-email { display: flex; flex-wrap: wrap; gap: .5rem; }
 .account-access-email input { flex: 1 1 14rem; }
+
+/* ============================================================
+   Photos never cut, buttons never overlapping (desktop fixes)
+   ============================================================ */
+
+/* Seller catalogue: the whole photo, square, on a soft ground. */
+.products-catalog .product-card-image { height: auto; aspect-ratio: 1; background: #f6efe8; }
+.products-catalog .product-card-image img { object-fit: contain; }
+.products-catalog .product-card:hover .product-card-image img:not(.product-image-error) { transform: none; }
+.product-card-badges { position: absolute; top: .55rem; left: .55rem; right: .55rem; display: flex; flex-wrap: wrap; gap: .3rem; pointer-events: none; }
+.product-card-badges .product-badge { position: static; }
+.products-catalog .product-card-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .45rem; padding: .7rem; }
+.products-catalog .product-card-actions > * { min-width: 0; width: 100%; }
+.products-catalog .product-card-actions form,
+.products-catalog .product-card-actions .share-wrap { display: block; width: 100%; }
+.products-catalog .product-card-actions .product-edit,
+.products-catalog .product-card-actions .product-toggle,
+.products-catalog .product-card-actions .share-trigger,
+.products-catalog .product-card-actions .text-button {
+  display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+  width: 100%; min-height: 2.4rem; padding: .4rem .5rem; border-radius: .7rem;
+  font-size: .82rem; font-weight: 700; white-space: nowrap;
+}
+.products-catalog .product-card-actions .product-edit { border: 1px solid var(--brand); background: var(--brand); color: #fff; text-decoration: none; }
+.products-catalog .product-card-actions .text-button { border: 1px solid color-mix(in srgb, var(--danger), transparent 70%); background: transparent; }
+@media (max-width: 480px) { .products-catalog .product-card-actions { padding: .6rem; } }
+
+/* Storefront cards: the full photo in a 4:5 frame; price and button wrap instead of colliding. */
+.theme-store .product-media { background: color-mix(in srgb, var(--store-text), transparent 95%); }
+.theme-store .product-media .product-image { object-fit: contain; background: transparent; }
+.theme-store .product-grid .product-media .product-image { aspect-ratio: 4 / 5; }
+.theme-store .product-card:hover .product-image { transform: none; }
+.theme-store .product-bottom { flex-wrap: wrap; align-items: center; }
+.theme-store .product-bottom .store-button { flex: 1 0 auto; }
+.theme-store .product-price { color: var(--store-text); white-space: nowrap; }
+
+/* Product page: the photo at its natural shape, never cropped. */
+.store-product-media .product-image { aspect-ratio: auto; height: auto; max-height: min(78vh, 46rem); object-fit: contain; background: color-mix(in srgb, var(--store-text), transparent 95%); }
+.store-product-price { color: var(--store-text); font-weight: 900; }
+.product-card-badges .product-badge { padding: .25rem .6rem; border-radius: 99px; background: rgba(36, 27, 27, .8); color: #fff; font-size: .7rem; font-weight: 800; box-shadow: 0 2px 6px rgba(0, 0, 0, .15); }
+.product-card-badges .product-badge-featured { background: var(--brand); }

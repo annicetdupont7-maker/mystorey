@@ -112,9 +112,14 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
                 ) : (
                   <div className="product-card-image-placeholder" aria-label="Image non disponible">📸</div>
                 )}
-                {p.is_featured && <div className="product-badge product-badge-featured" aria-label="Produit vedette"><Star size={12} fill="currentColor" /> Vedette</div>}
-                {!p.is_available && <div className="product-badge product-badge-hidden" aria-label="Produit masqué">Masqué</div>}
-                {p.stock === 0 && <div className="product-badge product-badge-hidden" aria-label="Épuisé">Épuisé</div>}
+                {/* One row of labels: they used to sit on top of each other. */}
+                {(p.is_featured || !p.is_available || p.stock === 0) && (
+                  <div className="product-card-badges">
+                    {p.is_featured && <span className="product-badge product-badge-featured"><Star size={12} fill="currentColor" aria-hidden="true" /> Vedette</span>}
+                    {!p.is_available && <span className="product-badge product-badge-hidden">Masqué</span>}
+                    {p.stock === 0 && <span className="product-badge product-badge-hidden">Épuisé</span>}
+                  </div>
+                )}
               </div>
 
               {/* Product Info */}
@@ -136,8 +141,11 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
                 </div>
               </div>
 
-              {/* Actions - Hidden until hover */}
-              <div className="product-card-actions" role="group" aria-label="Actions du produit">
+              {/* Two rows of equal buttons: four of them on one line overlapped on a computer. */}
+              <div className="product-card-actions" role="group" aria-label={`Actions pour ${p.name}`}>
+                <Link href={`/dashboard/products/${p.id}`} className="product-edit">
+                  <Edit2 size={14} aria-hidden="true" /> Modifier
+                </Link>
                 <form action={toggleProductAvailability}>
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="next" value={String(!p.is_available)} />
@@ -146,9 +154,6 @@ export function ProductsCatalog({ products, storeSlug, categories = [] }: { prod
                   </button>
                 </form>
                 <ShareSheet product={{ id: p.id, name: p.name, price: p.price, imageUrl: p.image_url, available: p.is_available }} storeSlug={storeSlug} label="Partager" />
-                <Link href={`/dashboard/products/${p.id}`} className="product-action-button" aria-label={`Modifier le produit ${p.name}`} title={`Modifier ${p.name}`}>
-                  <Edit2 size={14} />
-                </Link>
                 <DeleteProductButton id={p.id} />
               </div>
             </div>
