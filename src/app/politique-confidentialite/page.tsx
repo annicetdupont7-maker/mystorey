@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/features/feedback/schemas";
 
 export const metadata = {
   title: "Politique de confidentialité",
@@ -41,7 +42,7 @@ export default function PrivacyPage() {
 
           <section>
             <h2>6. Contact</h2>
-            <p>Pour toute demande relative à vos données, contactez NEXORA à l’adresse annicetdupont7@gmail.com.</p>
+            <p>Pour toute demande relative à vos données, contactez NEXORA à l’adresse {SUPPORT_EMAIL}.</p>
           </section>
         </div>
 

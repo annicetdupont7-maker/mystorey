@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/features/feedback/schemas";
 
 export const metadata = {
   title: "Mentions légales",
@@ -26,7 +27,7 @@ export default function LegalPage() {
 
           <section>
             <h2>3. Contact</h2>
-            <p>Email : annicetdupont7@gmail.com</p>
+            <p>Email : {SUPPORT_EMAIL}</p>
           </section>
 
           <section>

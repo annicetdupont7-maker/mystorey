@@ -32,4 +32,4 @@ export const feedbackStatusSchema = z.object({
 export type FeedbackActionState = { error?: string; success?: string; successId?: number; fieldErrors?: Record<string, string[]> };
 
 /** Support address shown when the in-app channel is unavailable. */
-export const SUPPORT_EMAIL = "annicetdupont7@gmail.com";
+export const SUPPORT_EMAIL = "mystorey.support@gmail.com";
