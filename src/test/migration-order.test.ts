@@ -12,6 +12,9 @@ it("keeps migration dependencies in executable order", () => {
   expect(position("20260904_launch_security.sql")).toBeGreaterThan(position("20260902_fedapay_payments.sql"));
   expect(position("20260914_kkiapay_payments.sql")).toBeGreaterThan(position("20260904_launch_security.sql"));
   expect(position("20260921_launch_hardening.sql")).toBeGreaterThan(position("20260912_product_variants.sql"));
+  // La garde anti-inondation pose un trigger sur orders : la table et son trigger
+  // de numérotation doivent exister avant.
+  expect(position("20260923_order_flood_guard.sql")).toBeGreaterThan(position("20260902_orders_checkout.sql"));
   expect(position("20260906_reengagement.sql")).toBeGreaterThan(position("20260905_subscription_plans.sql"));
 });
 

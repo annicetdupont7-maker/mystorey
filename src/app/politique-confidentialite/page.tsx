@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { SUPPORT_EMAIL } from "@/features/feedback/schemas";
+import { PROCESSORS } from "@/features/legal/entity";
 
 export const metadata = {
   title: "Politique de confidentialité",
@@ -27,7 +28,13 @@ export default function PrivacyPage() {
 
           <section>
             <h2>3. Partage des données</h2>
-            <p>Les données ne sont pas vendues à des tiers. Elles peuvent être partagées uniquement avec les prestataires techniques nécessaires au bon fonctionnement du service (hébergement, base de données, paiement, stockage de fichiers, support technique), dans le respect de la sécurité.</p>
+            <p>Les données ne sont jamais vendues. Elles ne sont partagées qu’avec les prestataires techniques strictement nécessaires au fonctionnement du service :</p>
+            <ul>
+              {PROCESSORS.map((processor) => (
+                <li key={processor.name}><strong>{processor.name}</strong> — {processor.role} ({processor.location}).</li>
+              ))}
+            </ul>
+            <p>Une commande passée dans une boutique est transmise à la vendeuse concernée, qui en devient responsable pour sa propre activité. Aucune autre vendeuse ne peut y accéder.</p>
           </section>
 
           <section>

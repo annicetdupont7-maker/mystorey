@@ -1,5 +1,11 @@
 # MYSTOREY - MVP Status
 
+> **Document d’archive, figé au 2026-09-04.** Il décrit l’état du produit AVANT
+> l’application des migrations de lancement et la recette en ligne du 22 septembre.
+> Sa conclusion (« pas encore prêt ») ne vaut plus.
+>
+> **L’état courant, et la seule source de vérité, est [LAUNCH_CHECKLIST.md](LAUNCH_CHECKLIST.md).**
+
 Dernière mise à jour : 2026-09-04
 
 ## Fonctionnalités présentes

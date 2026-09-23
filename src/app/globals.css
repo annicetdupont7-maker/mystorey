@@ -4070,6 +4070,9 @@ select.field-input { appearance: none; -webkit-appearance: none; background-imag
 .cart-note { font-size: .85rem; opacity: .75; margin: .85rem 0 0; }
 
 .checkout-form { display: grid; gap: .7rem; margin-top: .6rem; }
+/* Piège à robots : sorti de l'écran plutôt que display:none, que certains scripts
+   détectent pour l'ignorer. Jamais lu, jamais atteignable au clavier. */
+.checkout-trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 .checkout-title { margin: 0; font-weight: 800; font-size: .98rem; }
 .cart-field { display: grid; gap: .25rem; font-size: .78rem; font-weight: 700; opacity: .92; }
 .cart-field input, .cart-field textarea { min-height: 2.6rem; border: 1px solid color-mix(in srgb, var(--store-text), transparent 75%); border-radius: .7rem; padding: .5rem .7rem; background: #fff; color: var(--store-text); font: inherit; }

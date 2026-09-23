@@ -307,6 +307,13 @@ function CheckoutForm({ items, storeSlug, whatsapp, onBack, onOrdered, onFinish 
       {/* Only ids and quantities travel: the server recomputes every price and total
           from the database, so a tampered payload cannot change what is charged. */}
       <input type="hidden" name="cart" value={JSON.stringify(items.map((i) => ({ productId: i.id, variantId: i.variantId ?? null, quantity: i.quantity })))} />
+      {/* Piège à robots : hors du flux, hors du focus et hors des lecteurs d'écran,
+          donc une cliente ne peut pas le remplir. Un script qui remplit tous les
+          champs se trahit. La vraie limite reste celle de la base. */}
+      <div className="checkout-trap" aria-hidden="true">
+        <label htmlFor="checkout-website">Ne remplissez pas ce champ</label>
+        <input id="checkout-website" type="text" name="website" tabIndex={-1} autoComplete="off" defaultValue="" />
+      </div>
       <ul className="checkout-recap" aria-label="Récapitulatif">
         {items.map((item) => <li key={item.key}><span>{item.quantity} × {cartLineName(item)}</span><strong>{formatPrice(item.unitPrice * item.quantity)}</strong></li>)}
       </ul>

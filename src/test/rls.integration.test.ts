@@ -79,6 +79,7 @@ describe("après 20260912 + 20260921", () => {
       // Applied twice on purpose: both files must be replayable.
       await db.exec(sql("database/migrations/20260912_product_variants.sql"));
       await db.exec(sql("database/migrations/20260921_launch_hardening.sql"));
+      await db.exec(sql("database/migrations/20260923_order_flood_guard.sql"));
     }
   }, 60_000);
 
@@ -145,6 +146,39 @@ describe("après 20260912 + 20260921", () => {
     expect(rows(await as("authenticated", B, "select count(*)::int n from public.feedback"))[0]?.n).toBe(0);
     expect(rows(await as("authenticated", A, "update public.feedback set status='resolved' returning id"))).toHaveLength(0);
   });
+  it("checkout : une même cliente ne peut pas inonder une boutique de commandes", async () => {
+    await db.exec(`delete from public.orders where store_id='${STORE_A}'`);
+    const results = [];
+    for (let i = 0; i < 4; i++) results.push(await as("anon", null, checkout(ROBE)));
+    expect(results.slice(0, 3).every((r) => r.ok)).toBe(true);
+    const refused = results[3];
+    expect(refused.ok ? "" : refused.error).toMatch(/checkout_rate_limited/);
+    expect(rows(await as("service_role", null, `select count(*)::int n from public.orders where store_id='${STORE_A}'`))[0]?.n).toBe(3);
+  });
+
+  it("checkout : le plafond par boutique arrête une rafale même avec des numéros différents", async () => {
+    await db.exec(`delete from public.orders where store_id='${STORE_A}'`);
+    const flood = (phone: string) =>
+      as("anon", null, `select (o).total from (select public.create_checkout_order('${STORE_A}','Cliente','${phone}','Cotonou','','[{"productId":"${ROBE}","quantity":1}]'::jsonb) o) x`);
+    let error = "";
+    for (let i = 0; i < 30 && !error; i++) {
+      const r = await flood(`+2299000${String(i).padStart(4, "0")}`);
+      if (!r.ok) error = r.error;
+    }
+    expect(error).toMatch(/checkout_rate_limited/);
+    expect(rows(await as("service_role", null, `select count(*)::int n from public.orders where store_id='${STORE_A}'`))[0]?.n).toBe(25);
+  });
+
+  it("la vendeuse connectée n'est jamais bridée sur ses propres saisies", async () => {
+    // La boutique A est déjà au plafond public à ce stade : la vendeuse doit
+    // quand même pouvoir enregistrer les commandes reçues par téléphone.
+    for (let i = 0; i < 5; i++) {
+      const r = await as("authenticated", A, `insert into public.orders (store_id, customer_name, customer_phone, total) values ('${STORE_A}','Cliente du marché','+22997000000',5000) returning id`);
+      expect(r.ok).toBe(true);
+    }
+    await db.exec(`delete from public.orders where store_id='${STORE_A}'`);
+  });
+
   it("les images sont limitées à 5 Mo et aux formats image", async () => {
     const bucket = (await db.query<{ file_size_limit: string; allowed_mime_types: string[] }>("select file_size_limit, allowed_mime_types from storage.buckets where id='product-images'")).rows[0];
     expect(Number(bucket.file_size_limit)).toBe(5 * 1024 * 1024);

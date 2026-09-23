@@ -1,9 +1,12 @@
 "use server";
+import { after } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { orderFormSchema } from "./schemas";
 import { buildCheckoutMessage, type OrderMessageView } from "./messages";
 import { buildWhatsAppLink } from "@/features/storefront/whatsapp";
 import { isPlausiblePhone } from "@/features/phone/phone";
+import { checkoutErrorMessage, looksAutomated } from "./checkout-errors";
+import { notifySellerOfNewOrder } from "./notify";
 
 export type CheckoutActionState = {
   error?: string;
@@ -21,6 +24,8 @@ type CheckoutLine = { productId: string; variantId?: string | null; quantity: nu
 
 export async function createCheckoutOrder(_: CheckoutActionState, formData: FormData): Promise<CheckoutActionState> {
   const storeSlug = String(formData.get("storeSlug") || "");
+  // Refusé avant toute requête : un robot ne doit rien coûter à la base.
+  if (looksAutomated(formData.get("website"))) return { error: "Impossible d’enregistrer votre commande. Réessayez." };
   let parsedLines: CheckoutLine[] = [];
   try {
     const raw = String(formData.get("cart") || "[]");
@@ -61,17 +66,17 @@ export async function createCheckoutOrder(_: CheckoutActionState, formData: Form
       p_items: parsed.data.lines.map((line) => ({ productId: line.productId, variantId: line.variantId ?? null, quantity: line.quantity })),
     });
     if (rpcError || !created) {
-      // The checkout function raises named errors; the two a customer can actually hit
+      // The checkout function raises named errors; the ones a customer can actually hit
       // deserve an answer she can act on rather than "réessayez".
-      const code = rpcError?.message ?? "";
-      if (code.includes("checkout_insufficient_stock")) return { error: "La quantité demandée n’est plus disponible. Ajustez votre panier." };
-      if (code.includes("checkout_variant_not_found")) return { error: "Le choix sélectionné n’est plus disponible. Choisissez-en un autre." };
-      if (code.includes("checkout_product_not_found")) return { error: "Un article de votre panier n’est plus disponible. Retirez-le puis réessayez." };
-      if (code.includes("checkout_store_unavailable")) return { error: "Cette boutique ne reçoit pas de commandes pour le moment." };
-      return { error: "Impossible d’enregistrer votre commande. Réessayez." };
+      return { error: checkoutErrorMessage(rpcError?.message ?? "") };
     }
 
     const order = created as unknown as OrderMessageView;
+    // La commande est enregistrée : la vendeuse est prévenue par email APRÈS la
+    // réponse, car la cliente ne doit pas attendre un fournisseur d'email pour
+    // voir sa confirmation — et surtout parce que le lien WhatsApp ci-dessous
+    // ne part que si elle le clique.
+    after(() => notifySellerOfNewOrder(store.id, store.name, order));
     const message = buildCheckoutMessage(order, store.name);
     const waLink = buildWhatsAppLink(store.whatsapp, message);
     if (!waLink) return { error: "Impossible de préparer la conversation WhatsApp." };
