@@ -11,3 +11,9 @@ supabase/.temp/
 !.env.example
 
 .vercel/
+
+# Notes de travail et maquettes : utiles en local, hors sujet dans le dépôt public.
+prompt.md
+prompt_claude_two.md
+correctiongit.md
+maquette.jpeg
