@@ -8,7 +8,7 @@ Au Bénin, des milliers de vendeuses tiennent leur commerce depuis leur statut W
 
 > **État du projet** — application déployée et fonctionnelle de bout en bout : création de compte, boutique, catalogue, vitrine publique, panier, commande et tableau de bord. **L'encaissement des abonnements n'est pas encore ouvert** : l'intégration KKiaPay attend sa validation contre l'API réelle, les plans payants affichent « Ouverture prochaine ». Le projet est donc réel et avancé, mais pas commercialement terminé.
 
----
+
 
 ## Le parcours, des deux côtés
 
