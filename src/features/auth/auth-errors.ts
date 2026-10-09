@@ -1,13 +1,14 @@
 /**
- * Pourquoi une inscription a été refusée, traduit en une phrase que la personne
- * peut suivre. Séparé de l'action pour être testable sans Supabase : c'est le seul
- * endroit qui décide de ce qu'elle voit quand `signUp` échoue.
+ * Pourquoi une tentative d'authentification a été refusée, traduit en une phrase
+ * que la personne peut suivre. Séparé des actions pour être testable sans Supabase :
+ * c'est le seul endroit qui décide de ce qu'elle voit quand `signUp` échoue, et de
+ * ce qui compte comme « la plateforme n'a pas pu joindre sa base ».
  *
  * Avant, presque tout tombait dans « réessayez dans quelques minutes », y compris
  * une panne d'envoi d'email qui n'a rien à voir avec son mot de passe. Impossible
  * de diagnostiquer, et surtout impossible pour elle de savoir quoi corriger.
  */
-export type SignUpFailure = { code?: string; status?: number; message: string; reasons?: readonly string[] };
+export type AuthFailure = { code?: string; status?: number; message: string; reasons?: readonly string[] };
 
 /**
  * Une adresse déjà inscrite. Partagé avec l'action, qui doit renvoyer exactement
@@ -15,11 +16,32 @@ export type SignUpFailure = { code?: string; status?: number; message: string; r
  */
 export const ALREADY_REGISTERED = "Un compte existe déjà avec cette adresse. Connectez-vous, ou utilisez « Mot de passe oublié ? » pour choisir un nouveau mot de passe.";
 
+/** Rien n'est de sa faute et il n'y a rien à retaper : la plateforme est en panne. */
+export const SERVICE_UNREACHABLE = "Le service est momentanément indisponible, la panne est de notre côté. Vérifiez votre connexion, puis réessayez dans quelques minutes.";
+
 const GENERIC = "Impossible de créer le compte pour le moment. Réessayez dans quelques minutes, ou écrivez à l’équipe MYSTOREY (page Contact).";
 
-export function signUpErrorMessage(failure: SignUpFailure): string {
+/**
+ * La requête n'est jamais arrivée à destination. Supabase ne renvoie alors aucune
+ * erreur métier : supabase-js enveloppe l'échec réseau dans une erreur `status: 0`
+ * au message « fetch failed ».
+ *
+ * Ce test compte autant que les autres. Le 09/10/2026 le projet Supabase a cessé
+ * de répondre, et comme ce cas tombait dans la branche finale de `login`, chaque
+ * vendeuse lisait « Email ou mot de passe incorrect ». Elles ont cherché pendant
+ * des heures un mot de passe qui n'avait jamais été en cause.
+ */
+export function isUnreachable(failure: AuthFailure): boolean {
+  if (failure.status === 0) return true;
+  return /fetch failed|failed to fetch|network|socket|ECONNREFUSED|ECONNRESET|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|timeout/i.test(failure.message ?? "");
+}
+
+export function signUpErrorMessage(failure: AuthFailure): string {
   const { code = "", status, message } = failure;
   const text = message ?? "";
+
+  // D'abord : si la base est injoignable, aucune des règles ci-dessous ne s'applique.
+  if (isUnreachable(failure)) return SERVICE_UNREACHABLE;
 
   if (code === "user_already_exists" || /already registered|already exists/i.test(text)) return ALREADY_REGISTERED;
 

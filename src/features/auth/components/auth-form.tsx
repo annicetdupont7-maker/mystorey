@@ -26,7 +26,7 @@ export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mod
           {signedOut && <p className="form-success" role="status">Déconnexion réussie. À très vite !</p>}
           {!isLogin && <Field key={nameKey} label="Votre prénom" name="displayName" autoComplete="given-name" defaultValue={state.displayName} error={state.fieldErrors?.displayName?.[0]} placeholder="Ex. : Awa" />}
           <Field label="Adresse email" name="email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email?.[0]} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
-          <PasswordField label={isLogin ? "Mot de passe" : "Choisissez un mot de passe (8 caractères minimum)"} name="password" autoComplete={isLogin ? "current-password" : "new-password"} error={state.fieldErrors?.password?.[0]} />
+          <PasswordField label={isLogin ? "Mot de passe" : "Choisissez un mot de passe (8 caractères minimum)"} name="password" autoComplete={isLogin ? "current-password" : "new-password"} error={state.fieldErrors?.password?.[0]} minLength={isLogin ? undefined : 8} />
           {isLogin && <span className="auth-forgot"><Link href="/forgot-password">Mot de passe oublié ?</Link></span>}
           {state.error && <p className="form-error" role="alert">{state.error}</p>}
           {state.success && <p className="form-success" role="status">{state.success}</p>}

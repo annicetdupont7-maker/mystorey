@@ -1,7 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { ALREADY_REGISTERED, signUpErrorMessage } from "./signup-errors";
+import { ALREADY_REGISTERED, isUnreachable, SERVICE_UNREACHABLE, signUpErrorMessage } from "./auth-errors";
+
+describe("isUnreachable", () => {
+  it("reconnaît l’échec réseau tel que supabase-js le renvoie", () => {
+    // La panne du 09/10/2026, mot pour mot : status 0, aucun code, « fetch failed ».
+    expect(isUnreachable({ status: 0, message: "fetch failed" })).toBe(true);
+    expect(isUnreachable({ message: "getaddrinfo ENOTFOUND projet.supabase.co" })).toBe(true);
+    expect(isUnreachable({ message: "connect ECONNREFUSED 127.0.0.1:54321" })).toBe(true);
+  });
+
+  it("ne confond pas un refus métier avec une panne", () => {
+    expect(isUnreachable({ code: "weak_password", status: 422, message: "Password is known to be weak" })).toBe(false);
+    expect(isUnreachable({ code: "invalid_credentials", status: 400, message: "Invalid login credentials" })).toBe(false);
+  });
+});
 
 describe("signUpErrorMessage", () => {
+  it("dit que la panne est de notre côté quand la base est injoignable", () => {
+    expect(signUpErrorMessage({ status: 0, message: "fetch failed" })).toBe(SERVICE_UNREACHABLE);
+  });
+
   it("renvoie vers la connexion quand l’adresse est déjà inscrite", () => {
     expect(signUpErrorMessage({ code: "user_already_exists", status: 422, message: "User already registered" })).toBe(ALREADY_REGISTERED);
     // Les anciennes versions de GoTrue ne renvoient pas de code, seulement la phrase.

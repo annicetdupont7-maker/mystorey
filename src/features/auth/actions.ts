@@ -5,7 +5,7 @@ import { credentialsSchema, emailSchema, loginSchema, updatePasswordSchema, type
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { originFromHeaders } from "@/lib/app-url";
 import { destinationFor } from "./destination";
-import { ALREADY_REGISTERED, signUpErrorMessage } from "./signup-errors";
+import { ALREADY_REGISTERED, isUnreachable, SERVICE_UNREACHABLE, signUpErrorMessage } from "./auth-errors";
 const validation = (result: { success: false; error: { flatten: () => { fieldErrors: Record<string, string[]> } } }): ActionState => ({ fieldErrors: result.error.flatten().fieldErrors, error: "Vérifiez les informations saisies." });
 /**
  * Une inscription ou une connexion refusée laissait zéro trace : l'erreur était
@@ -42,7 +42,7 @@ export async function register(_: ActionState, formData: FormData): Promise<Acti
     hasSession = Boolean(data.session);
   } catch (cause) {
     logAuthFailure("register",{message:cause instanceof Error?cause.message:String(cause)});
-    return {error:"Le service est momentanément indisponible. Vérifiez votre connexion puis réessayez.",displayName,email};
+    return {error:SERVICE_UNREACHABLE,displayName,email};
   }
   if(hasSession)redirect("/onboarding");
   return {success:"Compte créé. Un email de confirmation vient d’être envoyé — ouvrez-le et touchez le lien pour activer votre espace.",email:result.data.email};
@@ -56,6 +56,12 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
     const supabase=await createSupabaseServerClient();
     const { error }=await supabase.auth.signInWithPassword(result.data);
     if(error){
+      // Un mot de passe mal tapé est la vie normale d'un formulaire : on ne logue
+      // que ce qui vient de la plateforme, sinon le filtre se noie dans le bruit.
+      if(error.code!=="invalid_credentials")logAuthFailure("login",error);
+      // Le piège qui a coûté le plus cher : sans ce test, une base injoignable
+      // répondait « mot de passe incorrect » et la vendeuse se croyait fautive.
+      if(isUnreachable(error))return {error:SERVICE_UNREACHABLE,email};
       if(error.code==="email_not_confirmed")return {error:"Votre adresse n’est pas encore confirmée. Vérifiez votre boîte mail.",reason:"email_not_confirmed",email:result.data.email};
       if(error.status===429)return {error:"Trop de tentatives. Patientez une minute puis réessayez.",email};
       return {error:"Email ou mot de passe incorrect.",email};
@@ -63,8 +69,9 @@ export async function login(_: ActionState, formData: FormData): Promise<ActionS
     const { data: { user } }=await supabase.auth.getUser();
     if(!user)return {error:"Session introuvable. Réessayez.",email};
     destination = await destinationFor(supabase, user);
-  } catch {
-    return {error:"Le service est momentanément indisponible. Vérifiez votre connexion puis réessayez.",email};
+  } catch (cause) {
+    logAuthFailure("login",{message:cause instanceof Error?cause.message:String(cause)});
+    return {error:SERVICE_UNREACHABLE,email};
   }
   redirect(destination);
 }
@@ -77,6 +84,7 @@ export async function resendConfirmation(_: ActionState, formData: FormData): Pr
   const { error }=await supabase.auth.resend({type:"signup",email:parsed.data.email,options:{emailRedirectTo:`${origin}/auth/callback`}});
   if(error){
     logAuthFailure("resend-confirmation",error);
+    if(isUnreachable(error))return {error:SERVICE_UNREACHABLE};
     return {error:"Impossible de renvoyer l’email pour le moment. Réessayez dans quelques minutes."};
   }
   return {success:"Email de confirmation renvoyé. Vérifiez votre boîte mail (pensez aux courriers indésirables)."};
@@ -92,11 +100,13 @@ export async function requestPasswordReset(_: ActionState, formData: FormData): 
     // Email delivery is not guaranteed: the way back in is a link the team sends on WhatsApp.
     if(error){
       logAuthFailure("password-reset",error);
+      if(isUnreachable(error))return {error:SERVICE_UNREACHABLE};
       return {error:"L’envoi par email ne fonctionne pas pour le moment. Écrivez à l’équipe MYSTOREY (page Contact) : elle vous enverra un lien sur WhatsApp pour choisir un nouveau mot de passe."};
     }
     return {success:"Si un compte existe avec cette adresse, un email de récupération vient d’être envoyé — vérifiez votre boîte mail (pensez aux courriers indésirables)."};
-  } catch {
-    return {error:"Le service est momentanément indisponible. Réessayez dans quelques minutes."};
+  } catch (cause) {
+    logAuthFailure("password-reset",{message:cause instanceof Error?cause.message:String(cause)});
+    return {error:SERVICE_UNREACHABLE};
   }
 }
 export async function updatePassword(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -105,9 +115,16 @@ export async function updatePassword(_: ActionState, formData: FormData): Promis
   try {
     const supabase=await createSupabaseServerClient();
     const { error }=await supabase.auth.updateUser({password:result.data.password});
-    if(error)return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
+    if(error){
+      logAuthFailure("update-password",error);
+      // Un lien parfaitement valide ne doit pas être déclaré expiré parce que la
+      // requête n'est jamais arrivée : elle relancerait une demande pour rien.
+      if(isUnreachable(error))return {error:SERVICE_UNREACHABLE};
+      return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
+    }
     await supabase.auth.signOut();
-  } catch {
+  } catch (cause) {
+    logAuthFailure("update-password",{message:cause instanceof Error?cause.message:String(cause)});
     return {error:"Le lien de récupération est invalide ou a expiré. Relancez une demande de mot de passe oublié."};
   }
   redirect("/login?reset=success");
