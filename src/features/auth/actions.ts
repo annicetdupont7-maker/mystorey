@@ -5,7 +5,20 @@ import { credentialsSchema, emailSchema, loginSchema, updatePasswordSchema, type
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { originFromHeaders } from "@/lib/app-url";
 import { destinationFor } from "./destination";
+import { ALREADY_REGISTERED, signUpErrorMessage } from "./signup-errors";
 const validation = (result: { success: false; error: { flatten: () => { fieldErrors: Record<string, string[]> } } }): ActionState => ({ fieldErrors: result.error.flatten().fieldErrors, error: "Vérifiez les informations saisies." });
+/**
+ * Une inscription ou une connexion refusée laissait zéro trace : l'erreur était
+ * attrapée, donc `onRequestError` de src/instrumentation.ts ne la voyait jamais, et
+ * on ne pouvait pas dire à une vendeuse bloquée ce qui s'était passé. Même préfixe
+ * que l'instrumentation, donc le même filtre les retrouve dans les logs Vercel.
+ *
+ * L'adresse email n'y figure pas : le code, le statut et le message de Supabase
+ * suffisent à trancher entre un mot de passe refusé, un quota et une panne d'envoi.
+ */
+function logAuthFailure(step: string, failure: { code?: string; status?: number; message: string }) {
+  console.error("[mystorey-error]", JSON.stringify({ step, code: failure.code, status: failure.status, message: failure.message, at: new Date().toISOString() }));
+}
 export async function register(_: ActionState, formData: FormData): Promise<ActionState> {
   const displayName = String(formData.get("displayName") ?? "");
   const email = String(formData.get("email") ?? "");
@@ -18,12 +31,17 @@ export async function register(_: ActionState, formData: FormData): Promise<Acti
     const origin=originFromHeaders(await headers());
     const { data, error }=await supabase.auth.signUp({email:result.data.email,password:result.data.password,options:{data:{display_name:result.data.displayName},emailRedirectTo:`${origin}/auth/callback`}});
     if(error){
-      if(error.code==="user_already_exists"||/already/i.test(error.message))return {error:"Un compte existe déjà avec cette adresse. Connectez-vous.",displayName,email};
-      if(error.code==="weak_password")return {error:"Ce mot de passe est trop facile à deviner. Choisissez-en un autre (8 caractères minimum).",displayName,email};
-      return {error:"Impossible de créer le compte. Vérifiez l’adresse ou réessayez dans quelques minutes.",displayName,email};
+      logAuthFailure("register",error);
+      return {error:signUpErrorMessage(error),displayName,email};
     }
+    // Confirmation d'email activée : pour ne pas révéler qui possède un compte,
+    // Supabase renvoie un utilisateur leurre sans identité au lieu de « déjà
+    // inscrit ». Sans ce test la personne croyait son compte créé, attendait un
+    // email qui ne partait jamais, puis se heurtait à « mot de passe incorrect ».
+    if(data.user&&(data.user.identities?.length??0)===0)return {error:ALREADY_REGISTERED,displayName,email};
     hasSession = Boolean(data.session);
-  } catch {
+  } catch (cause) {
+    logAuthFailure("register",{message:cause instanceof Error?cause.message:String(cause)});
     return {error:"Le service est momentanément indisponible. Vérifiez votre connexion puis réessayez.",displayName,email};
   }
   if(hasSession)redirect("/onboarding");
@@ -57,7 +75,10 @@ export async function resendConfirmation(_: ActionState, formData: FormData): Pr
   const supabase=await createSupabaseServerClient();
   const origin=originFromHeaders(await headers());
   const { error }=await supabase.auth.resend({type:"signup",email:parsed.data.email,options:{emailRedirectTo:`${origin}/auth/callback`}});
-  if(error)return {error:"Impossible de renvoyer l’email pour le moment. Réessayez dans quelques minutes."};
+  if(error){
+    logAuthFailure("resend-confirmation",error);
+    return {error:"Impossible de renvoyer l’email pour le moment. Réessayez dans quelques minutes."};
+  }
   return {success:"Email de confirmation renvoyé. Vérifiez votre boîte mail (pensez aux courriers indésirables)."};
 }
 export async function requestPasswordReset(_: ActionState, formData: FormData): Promise<ActionState> {
@@ -69,7 +90,10 @@ export async function requestPasswordReset(_: ActionState, formData: FormData): 
     const redirectTo=`${origin}/auth/callback?next=/reset-password`;
     const { error }=await supabase.auth.resetPasswordForEmail(parsed.data.email,{redirectTo});
     // Email delivery is not guaranteed: the way back in is a link the team sends on WhatsApp.
-    if(error)return {error:"L’envoi par email ne fonctionne pas pour le moment. Écrivez à l’équipe MYSTOREY (page Contact) : elle vous enverra un lien sur WhatsApp pour choisir un nouveau mot de passe."};
+    if(error){
+      logAuthFailure("password-reset",error);
+      return {error:"L’envoi par email ne fonctionne pas pour le moment. Écrivez à l’équipe MYSTOREY (page Contact) : elle vous enverra un lien sur WhatsApp pour choisir un nouveau mot de passe."};
+    }
     return {success:"Si un compte existe avec cette adresse, un email de récupération vient d’être envoyé — vérifiez votre boîte mail (pensez aux courriers indésirables)."};
   } catch {
     return {error:"Le service est momentanément indisponible. Réessayez dans quelques minutes."};
