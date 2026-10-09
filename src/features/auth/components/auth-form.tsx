@@ -25,7 +25,7 @@ export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mod
           {resetSuccess && <p className="form-success" role="status">Votre mot de passe a été mis à jour. Connectez-vous avec votre nouveau mot de passe.</p>}
           {signedOut && <p className="form-success" role="status">Déconnexion réussie. À très vite !</p>}
           {!isLogin && <Field key={nameKey} label="Votre prénom" name="displayName" autoComplete="given-name" defaultValue={state.displayName} error={state.fieldErrors?.displayName?.[0]} placeholder="Ex. : Awa" />}
-          <Field label="Adresse email" name="email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email?.[0]} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" />
+          <Field label="Adresse email" name="email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email?.[0]} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" hint={isLogin ? undefined : "C’est avec cette adresse que vous vous connecterez et que vous récupérerez votre mot de passe. Relisez-la avant de continuer."} />
           <PasswordField label={isLogin ? "Mot de passe" : "Choisissez un mot de passe (8 caractères minimum)"} name="password" autoComplete={isLogin ? "current-password" : "new-password"} error={state.fieldErrors?.password?.[0]} minLength={isLogin ? undefined : 8} />
           {isLogin && <span className="auth-forgot"><Link href="/forgot-password">Mot de passe oublié ?</Link></span>}
           {state.error && <p className="form-error" role="alert">{state.error}</p>}
@@ -40,12 +40,12 @@ export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mod
     </div>
   );
 }
-function Field({ label, name, type = "text", autoComplete, error, value, defaultValue, onChange, placeholder, inputMode }: { label: string; name: string; type?: string; autoComplete: string; error?: string; value?: string; defaultValue?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"] }) {
+function Field({ label, name, type = "text", autoComplete, error, value, defaultValue, onChange, placeholder, inputMode, hint }: { label: string; name: string; type?: string; autoComplete: string; error?: string; value?: string; defaultValue?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string; inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"]; hint?: string }) {
   return (
     <label className="field">
       <span>{label}</span>
       <input required name={name} type={type} autoComplete={autoComplete} value={value} defaultValue={defaultValue} onChange={onChange} placeholder={placeholder} inputMode={inputMode} aria-invalid={error ? true : undefined} autoCapitalize={type === "email" ? "none" : undefined} />
-      {error && <small>{error}</small>}
+      {error ? <small className="field-error">{error}</small> : hint ? <small className="field-hint">{hint}</small> : null}
     </label>
   );
 }

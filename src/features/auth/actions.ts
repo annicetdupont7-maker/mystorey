@@ -44,6 +44,11 @@ export async function register(_: ActionState, formData: FormData): Promise<Acti
     logAuthFailure("register",{message:cause instanceof Error?cause.message:String(cause)});
     return {error:SERVICE_UNREACHABLE,displayName,email};
   }
+  // La confirmation d'email est désactivée sur ce projet Supabase : signUp renvoie
+  // toujours une session et la vendeuse arrive directement sur l'onboarding, sans
+  // rien à ouvrir dans sa boîte mail. Le message ci-dessous reste le comportement
+  // juste si la case « Confirm email » est un jour recochée dans le tableau de bord,
+  // et le bouton de renvoi de l'interface ne s'affiche qu'avec lui.
   if(hasSession)redirect("/onboarding");
   return {success:"Compte créé. Un email de confirmation vient d’être envoyé — ouvrez-le et touchez le lien pour activer votre espace.",email:result.data.email};
 }
