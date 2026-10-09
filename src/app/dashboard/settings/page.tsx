@@ -3,6 +3,7 @@ import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { SettingsForm } from "@/features/stores/components/settings-form";
 import { DeleteStoreForm } from "@/features/stores/components/delete-store-form";
+import { DeleteAccountForm } from "@/features/account/components/delete-account-form";
 import { PublishStoreButton, UnpublishStoreButton } from "@/features/stores/components/publish-button";
 export const dynamic = "force-dynamic";
 export default async function SettingsPage() {
@@ -24,5 +25,6 @@ export default async function SettingsPage() {
       {store.status === "published" ? <UnpublishStoreButton storeId={store.id} /> : <PublishStoreButton storeId={store.id} />}
     </section>
     <DeleteStoreForm storeId={store.id} />
+    <DeleteAccountForm />
   </DashboardShell>;
 }

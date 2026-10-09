@@ -185,3 +185,60 @@ describe("après 20260912 + 20260921", () => {
     expect(bucket.allowed_mime_types).toEqual(["image/jpeg", "image/png", "image/webp"]);
   });
 });
+
+describe("après 20261009 : l'archive des ventes d'un compte supprimé", () => {
+  const ORDER_A = "30000000-0000-0000-0000-00000000000a";
+  beforeAll(async () => {
+    for (let pass = 0; pass < 2; pass++) {
+      // Rejouée deux fois : le fichier doit rester relançable dans le SQL Editor.
+      await db.exec(sql("database/migrations/20261009_account_deletion.sql"));
+    }
+    await db.exec(`
+      insert into public.orders (id, store_id, customer_name, customer_phone, total)
+      values ('${ORDER_A}','${STORE_A}','Cliente de A','+22995000000',30000);
+    `);
+  }, 60_000);
+
+  it("le serveur archive une vente sans la moindre donnée de la cliente", async () => {
+    const r = await as("service_role", null, `
+      insert into public.archived_orders (order_id, store_id, store_name, store_slug, total, status, ordered_at)
+      select id, store_id, 'Boutique A', 'boutique-a', total, status::text, created_at from public.orders where id='${ORDER_A}'
+      returning store_name, total`);
+    expect(rows(r)[0]?.total).toBe(30000);
+    const columns = rows(await as("service_role", null, "select column_name from information_schema.columns where table_name='archived_orders'")).map((c) => c.column_name);
+    expect(columns).not.toContain("customer_name");
+    expect(columns).not.toContain("customer_phone");
+    expect(columns).not.toContain("note");
+  });
+
+  it("l'archive survit à la suppression de la boutique, sinon elle ne servirait à rien", async () => {
+    // Le cas réel : supprimer le compte supprime la boutique en cascade, donc la
+    // commande. L'archive n'a volontairement aucune clé étrangère vers `stores`.
+    await db.exec("begin");
+    await db.exec(`delete from public.stores where id='${STORE_A}'`);
+    const left = (await db.query<{ n: number }>("select count(*)::int n from public.archived_orders")).rows[0]?.n;
+    const orders = (await db.query<{ n: number }>(`select count(*)::int n from public.orders where store_id='${STORE_A}'`)).rows[0]?.n;
+    await db.exec("rollback");
+    expect(orders).toBe(0);
+    expect(left).toBe(1);
+  });
+
+  it("deux archivages de la même commande ne font pas deux lignes", async () => {
+    const again = await as("service_role", null, `
+      insert into public.archived_orders (order_id, store_id, total, ordered_at)
+      values ('${ORDER_A}','${STORE_A}',30000, now())`);
+    expect(again.ok).toBe(false);
+    expect(rows(await as("service_role", null, "select count(*)::int n from public.archived_orders"))[0]?.n).toBe(1);
+  });
+
+  it("une visiteuse et une vendeuse ne voient jamais l'archive", async () => {
+    expect(rows(await as("anon", null, "select count(*)::int n from public.archived_orders"))[0]?.n ?? 0).toBe(0);
+    expect(rows(await as("authenticated", B, "select count(*)::int n from public.archived_orders"))[0]?.n).toBe(0);
+  });
+
+  it("une administratrice la lit, parce que c'est sa comptabilité", async () => {
+    await as("service_role", null, "update public.profiles set role='admin' where user_id=$1", [B]);
+    expect(rows(await as("authenticated", B, "select count(*)::int n from public.archived_orders"))[0]?.n).toBe(1);
+    await as("service_role", null, "update public.profiles set role='seller' where user_id=$1", [B]);
+  });
+});

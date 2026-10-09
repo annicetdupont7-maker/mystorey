@@ -6,7 +6,7 @@ import { ResendConfirmation } from "./resend-confirmation";
 import { PasswordField } from "./password-field";
 import type { ActionState } from "../schemas";
 const initial: ActionState = {};
-export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mode: "login" | "register"; callbackError?: boolean; resetSuccess?: boolean; signedOut?: boolean }) {
+export function AuthForm({ mode, callbackError, resetSuccess, signedOut, accountDeleted }: { mode: "login" | "register"; callbackError?: boolean; resetSuccess?: boolean; signedOut?: boolean; accountDeleted?: boolean }) {
   const [state, action, pending] = useActionState(mode === "login" ? login : register, initial);
   const [email, setEmail] = useState("");
   const isLogin = mode === "login";
@@ -24,6 +24,7 @@ export function AuthForm({ mode, callbackError, resetSuccess, signedOut }: { mod
           {callbackError && <p className="form-error" role="alert">Ce lien est invalide, expiré ou a déjà servi. Connectez-vous, ou demandez un nouveau lien à l’équipe MYSTOREY (page Contact).</p>}
           {resetSuccess && <p className="form-success" role="status">Votre mot de passe a été mis à jour. Connectez-vous avec votre nouveau mot de passe.</p>}
           {signedOut && <p className="form-success" role="status">Déconnexion réussie. À très vite !</p>}
+          {accountDeleted && <p className="form-success" role="status">Votre compte a été supprimé, ainsi que vos boutiques et vos photos. Merci d’avoir essayé MYSTOREY.</p>}
           {!isLogin && <Field key={nameKey} label="Votre prénom" name="displayName" autoComplete="given-name" defaultValue={state.displayName} error={state.fieldErrors?.displayName?.[0]} placeholder="Ex. : Awa" />}
           <Field label="Adresse email" name="email" type="email" autoComplete="email" inputMode="email" error={state.fieldErrors?.email?.[0]} value={email} onChange={(e) => setEmail(e.target.value)} placeholder="vous@exemple.com" hint={isLogin ? undefined : "C’est avec cette adresse que vous vous connecterez et que vous récupérerez votre mot de passe. Relisez-la avant de continuer."} />
           <PasswordField label={isLogin ? "Mot de passe" : "Choisissez un mot de passe (8 caractères minimum)"} name="password" autoComplete={isLogin ? "current-password" : "new-password"} error={state.fieldErrors?.password?.[0]} minLength={isLogin ? undefined : 8} />
