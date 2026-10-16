@@ -31,9 +31,12 @@ de production (`database/testing/prod_snapshot.sql`) et vérifie 20 scénarios (
 
 ## Paiements
 
-Fermés (`KKIAPAY_PAYMENTS_ENABLED` absent ou différent de `true`) : les plans payants affichent
-« Ouverture prochaine ». Avant d'ouvrir : valider l'intégration KKiaPay contre l'API réelle
-(widget officiel + vérification serveur de la transaction), clés live, webhook signé testé.
+SasPay est le prestataire branché sur le tableau de bord. Fermés tant que
+`SASPAY_PAYMENTS_ENABLED` est absent ou différent de `true`, ou qu'une des deux clés
+manque : les plans payants affichent « Ouverture prochaine ».
+
+Avant d'ouvrir : `SASPAY_SECRET_KEY` et `SASPAY_WEBHOOK_SECRET` posées, webhook déclaré
+chez SasPay sur `<adresse>/api/webhooks/saspay`, et un vrai achat de bout en bout.
 
 ## Migration du 2026-09-23 — À APPLIQUER en production
 
@@ -90,16 +93,34 @@ personne : elle dort dans le tableau de bord.
    réception. Sans ces deux variables, aucun email ne part et le checkout est
    inchangé — il n'y a rien à désactiver.
 
-### 4. Paiements KKiaPay — quand une vendeuse atteindra 10 produits
+### 4. Paiements SasPay — quand une vendeuse atteindra 10 produits
 
 Rien ne presse : le plan gratuit couvre 10 produits. Dans l'ordre, le jour venu :
-compte marchand validé → les 3 clés **live** dans Vercel → webhook pointé sur
-`<adresse>/api/webhooks/kkiapay` et signature vérifiée → un vrai achat de bout en bout
-→ `KKIAPAY_PAYMENTS_ENABLED=true`. Le renouvellement et l'expiration mensuelle n'ont
-jamais tourné sur des données réelles : les éprouver avant d'ouvrir à toutes.
 
-FedaPay et Wave ont des routes de webhook mais aucune clé et aucun test : ne pas les
-ouvrir tant que KKiaPay n'est pas rodé.
+1. Appliquer `database/migrations/20261016_saspay_payments.sql` en production.
+2. Poser `SASPAY_SECRET_KEY` et `SASPAY_WEBHOOK_SECRET` dans Vercel (jamais de
+   préfixe `NEXT_PUBLIC`).
+3. Déclarer le webhook chez SasPay sur `<adresse>/api/webhooks/saspay` et copier le
+   secret de signature — il n'est affiché qu'une fois.
+4. Faire un vrai achat de bout en bout et vérifier que l'abonnement passe à `active`.
+5. `SASPAY_PAYMENTS_ENABLED=true`.
+
+Deux points jamais éprouvés sur des données réelles, à vérifier au premier achat :
+
+- **Le rapprochement session → transaction.** SasPay donne un identifiant de *session*
+  à la création et un identifiant de *transaction* dans le webhook. Le webhook lie les
+  deux en relisant `GET /checkout-sessions/{id}/status/`. Si le premier paiement réel
+  reste « en attente », c'est là qu'il faut regarder.
+- **Le renouvellement et l'expiration mensuelle.** Le mobile money de la zone ne
+  prélève pas tout seul : un abonnement expire au bout de 30 jours et doit être repayé
+  à la main. Rien ne relance la vendeuse aujourd'hui.
+
+La clé SasPay ne doit porter que la portée **encaissement**. MYSTOREY n'envoie jamais
+d'argent, et le webhook refuse déjà tout évènement qui n'est pas un `transaction.*` de
+type `PAIEMENT` — mais une clé qui sait décaisser reste une clé qui peut vider le solde.
+
+KKiaPay, FedaPay et Wave gardent leur code et leurs routes de webhook, sans clé ni
+bouton : aucun n'est atteignable depuis le tableau de bord.
 
 ### 5. Surveillance
 

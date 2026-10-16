@@ -6,7 +6,7 @@ import { getMyFirstStore } from "@/features/stores/data";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPlanById } from "@/features/subscriptions/types";
 import { getKkiapayClient } from "@/lib/kkiapay/client";
-import { paidPlansArePurchasable } from "./availability";
+import { kkiapayPaidPlansArePurchasable } from "./availability";
 
 export async function initiateKkiapayPayment(formData: FormData): Promise<void> {
   const planId = String(formData.get("planId") || "free");
@@ -20,7 +20,7 @@ export async function initiateKkiapayPayment(formData: FormData): Promise<void> 
 
   // Checked here and not only in the UI: hiding the button must never be the
   // only thing standing between a seller and a sandbox payment.
-  if (plan.id !== "free" && !paidPlansArePurchasable()) {
+  if (plan.id !== "free" && !kkiapayPaidPlansArePurchasable()) {
     throw new Error("Les plans payants ne sont pas encore ouverts. Réessayez après leur ouverture.");
   }
 

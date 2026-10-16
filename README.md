@@ -10,7 +10,7 @@ Démo en ligne : [mystorey-tau.vercel.app](https://mystorey-tau.vercel.app)
 
 L'application est déployée et fonctionne de bout en bout : création de compte, boutique, catalogue, vitrine publique, panier, commande et tableau de bord.
 
-L'encaissement des abonnements n'est pas encore ouvert. L'intégration KKiaPay attend sa validation contre l'API réelle, et les plans payants affichent « Ouverture prochaine ». Le projet est donc réel et avancé, mais pas commercialement terminé.
+L'encaissement des abonnements n'est pas encore ouvert. L'intégration SasPay est en place et testée, mais elle attend sa validation contre un vrai paiement : tant que ses clés et son interrupteur ne sont pas posés, les plans payants affichent « Ouverture prochaine ». Le projet est donc réel et avancé, mais pas commercialement terminé.
 
 ## Le parcours, des deux côtés
 
@@ -46,7 +46,7 @@ src/
   lib/              Clients Supabase (navigateur, serveur, service), utilitaires
   test/             Tests d'intégration RLS et ordre des migrations
 database/
-  migrations/       25 migrations SQL numérotées, rejouables
+  migrations/       27 migrations SQL numérotées, rejouables
   testing/          Reconstruction du schéma de production pour les tests
 ```
 
@@ -74,7 +74,7 @@ L'email de nouvelle commande ne fait jamais attendre la cliente. Il part dans `a
 npm test
 ```
 
-234 tests, dont une suite d'intégration qui rejoue les migrations sur une reconstruction du schéma de production avec PGlite, puis vérifie les scénarios de sécurité réellement, y compris une faille avant et après correctif, et les trois cas de la garde anti-inondation.
+267 tests, dont une suite d'intégration qui rejoue les migrations sur une reconstruction du schéma de production avec PGlite, puis vérifie les scénarios de sécurité réellement, y compris une faille avant et après correctif, et les trois cas de la garde anti-inondation.
 
 ```bash
 npm run typecheck
@@ -95,7 +95,7 @@ Renseignez les clés Supabase dans `.env.local`. Les migrations de `database/mig
 
 ## Ce qui vient ensuite
 
-Intégrer et valider l'agrégateur de paiement KKiaPay contre l'API réelle.
+Valider l'intégration SasPay contre un vrai paiement, puis ouvrir les plans payants.
 
 Choisir le domaine définitif et aligner les URLs d'authentification et de partage.
 

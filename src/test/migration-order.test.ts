@@ -11,6 +11,10 @@ it("keeps migration dependencies in executable order", () => {
   expect(position("20260828_subscription_plans.sql")).toBeLessThan(position("20260902_fedapay_payments.sql"));
   expect(position("20260904_launch_security.sql")).toBeGreaterThan(position("20260902_fedapay_payments.sql"));
   expect(position("20260914_kkiapay_payments.sql")).toBeGreaterThan(position("20260904_launch_security.sql"));
+  // saspay_payments pose un trigger sur validate_payment_attempt() et référence
+  // subscription_plans : les deux doivent exister avant.
+  expect(position("20261016_saspay_payments.sql")).toBeGreaterThan(position("20260904_launch_security.sql"));
+  expect(position("20261016_saspay_payments.sql")).toBeGreaterThan(position("20260828_subscription_plans.sql"));
   expect(position("20260921_launch_hardening.sql")).toBeGreaterThan(position("20260912_product_variants.sql"));
   // La garde anti-inondation pose un trigger sur orders : la table et son trigger
   // de numérotation doivent exister avant.
@@ -34,6 +38,12 @@ describe("migration safety guards", () => {
     const kkiapay = readFileSync(join(migrationsDir, "20260914_kkiapay_payments.sql"), "utf8");
     expect(kkiapay).toContain("create table if not exists public.kkiapay_payments");
     expect(kkiapay).toContain("alter table public.kkiapay_payments enable row level security");
+    const saspay = readFileSync(join(migrationsDir, "20261016_saspay_payments.sql"), "utf8");
+    expect(saspay).toContain("create table if not exists public.saspay_payments");
+    expect(saspay).toContain("alter table public.saspay_payments enable row level security");
+    // Le montant est revalidé en base : une vendeuse ne doit pas pouvoir inscrire
+    // elle-même une ligne déjà payée depuis le navigateur.
+    expect(saspay).toContain("execute procedure public.validate_payment_attempt()");
     expect(reengagement).toContain("alter table public.customer_contacts enable row level security");
     expect(reengagement).toContain("alter table public.reengagement_logs enable row level security");
   });

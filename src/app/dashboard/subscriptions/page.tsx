@@ -5,8 +5,8 @@ import { getMyFirstStore } from "@/features/stores/data";
 import { DashboardShell } from "@/features/dashboard/components/dashboard-shell";
 import { getSellerSubscriptionStatus } from "@/features/subscriptions/data";
 import { subscriptionPlans } from "@/features/subscriptions/types";
-import { paidPlansArePurchasable } from "@/features/subscriptions/availability";
-import { initiateKkiapayPayment } from "@/features/subscriptions/kkiapay-actions";
+import { paidPlansArePurchasable, sellerPaysProviderFees } from "@/features/subscriptions/availability";
+import { initiateSaspayPayment } from "@/features/subscriptions/saspay-actions";
 import { getProducts } from "@/features/products/data";
 
 export const dynamic = "force-dynamic";
@@ -33,6 +33,7 @@ export default async function SubscriptionsPage() {
   const productCount = productsResult?.products.length ?? 0;
   const productLimit = subscriptionStatus.plan.productLimit;
   const canBuy = paidPlansArePurchasable();
+  const feesAddedOnTop = canBuy && sellerPaysProviderFees();
   const usageRatio = productLimit ? Math.min(productCount / productLimit, 1) : 0;
   const remaining = productLimit ? Math.max(productLimit - productCount, 0) : null;
   const atLimit = remaining === 0;
@@ -91,6 +92,12 @@ export default async function SubscriptionsPage() {
 
               <div className="subscription-price">{plan.priceLabel}</div>
 
+              {feesAddedOnTop && plan.id !== "free" && !isCurrent && (
+                <p className="muted">
+                  Votre opérateur mobile money ajoute ses frais au moment du paiement, environ 3 % du montant.
+                </p>
+              )}
+
               <ul className="subscription-list">
                 <li><strong>{plan.productLimit ? `Jusqu’à ${plan.productLimit} produits` : "Produits illimités"}</strong></li>
                 <li>Boutique personnalisable et publication</li>
@@ -104,7 +111,7 @@ export default async function SubscriptionsPage() {
               ) : plan.id === "free" ? (
                 <button type="button" className="vf-button vf-button--ghost" disabled>Inclus dans votre compte</button>
               ) : canBuy ? (
-                <form action={initiateKkiapayPayment}>
+                <form action={initiateSaspayPayment}>
                   <input type="hidden" name="planId" value={plan.id} />
                   <button type="submit" className="vf-button">Passer au plan {plan.name}</button>
                 </form>

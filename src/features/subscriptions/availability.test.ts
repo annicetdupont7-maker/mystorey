@@ -1,7 +1,15 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { paidPlansArePurchasable } from "./availability";
+import { kkiapayPaidPlansArePurchasable, paidPlansArePurchasable, saspayPaidPlansArePurchasable } from "./availability";
 
-const KEYS = ["KKIAPAY_PAYMENTS_ENABLED", "KKIAPAY_PUBLIC_KEY", "KKIAPAY_PRIVATE_KEY", "KKIAPAY_WEBHOOK_SECRET"] as const;
+const KEYS = [
+  "SASPAY_PAYMENTS_ENABLED",
+  "SASPAY_SECRET_KEY",
+  "SASPAY_WEBHOOK_SECRET",
+  "KKIAPAY_PAYMENTS_ENABLED",
+  "KKIAPAY_PUBLIC_KEY",
+  "KKIAPAY_PRIVATE_KEY",
+  "KKIAPAY_WEBHOOK_SECRET",
+] as const;
 const saved: Record<string, string | undefined> = {};
 
 beforeEach(() => {
@@ -18,10 +26,9 @@ afterEach(() => {
   }
 });
 
-const withLiveKeys = () => {
-  process.env.KKIAPAY_PUBLIC_KEY = "pk_live";
-  process.env.KKIAPAY_PRIVATE_KEY = "sk_live";
-  process.env.KKIAPAY_WEBHOOK_SECRET = "whsec";
+const withLiveSaspayKeys = () => {
+  process.env.SASPAY_SECRET_KEY = "sk_live_xxx";
+  process.env.SASPAY_WEBHOOK_SECRET = "whsec";
 };
 
 describe("paid plan availability", () => {
@@ -30,28 +37,47 @@ describe("paid plan availability", () => {
   });
 
   it("stays closed while the flag is off, even with keys present", () => {
-    withLiveKeys();
+    withLiveSaspayKeys();
     expect(paidPlansArePurchasable()).toBe(false);
   });
 
-  it("stays closed when the flag is on but a key is missing", () => {
-    process.env.KKIAPAY_PAYMENTS_ENABLED = "true";
-    process.env.KKIAPAY_PUBLIC_KEY = "pk_live";
-    process.env.KKIAPAY_PRIVATE_KEY = "sk_live";
+  it("stays closed when the flag is on but the webhook secret is missing", () => {
+    process.env.SASPAY_PAYMENTS_ENABLED = "true";
+    process.env.SASPAY_SECRET_KEY = "sk_live_xxx";
     expect(paidPlansArePurchasable()).toBe(false);
   });
 
-  it("only accepts the exact string \"true\", so a stray value cannot open checkout", () => {
-    withLiveKeys();
+  it('only accepts the exact string "true", so a stray value cannot open checkout', () => {
+    withLiveSaspayKeys();
     for (const value of ["1", "yes", "TRUE", "on", ""]) {
-      process.env.KKIAPAY_PAYMENTS_ENABLED = value;
+      process.env.SASPAY_PAYMENTS_ENABLED = value;
       expect(paidPlansArePurchasable()).toBe(false);
     }
   });
 
-  it("opens once the flag and the three keys are set", () => {
-    withLiveKeys();
-    process.env.KKIAPAY_PAYMENTS_ENABLED = "true";
+  it("opens once the flag and both SasPay keys are set", () => {
+    withLiveSaspayKeys();
+    process.env.SASPAY_PAYMENTS_ENABLED = "true";
     expect(paidPlansArePurchasable()).toBe(true);
+    expect(saspayPaidPlansArePurchasable()).toBe(true);
+  });
+});
+
+describe("providers stay independent", () => {
+  // Les deux prestataires ont leur propre interrupteur : ouvrir l'un ne doit jamais
+  // rouvrir l'autre, sinon un reste de clés Kkiapay suffirait à encaisser ailleurs.
+  it("does not open Kkiapay when SasPay is live", () => {
+    withLiveSaspayKeys();
+    process.env.SASPAY_PAYMENTS_ENABLED = "true";
+    expect(kkiapayPaidPlansArePurchasable()).toBe(false);
+  });
+
+  it("does not open the checkout when only Kkiapay is configured", () => {
+    process.env.KKIAPAY_PAYMENTS_ENABLED = "true";
+    process.env.KKIAPAY_PUBLIC_KEY = "pk_live";
+    process.env.KKIAPAY_PRIVATE_KEY = "sk_live";
+    process.env.KKIAPAY_WEBHOOK_SECRET = "whsec";
+    expect(kkiapayPaidPlansArePurchasable()).toBe(true);
+    expect(paidPlansArePurchasable()).toBe(false);
   });
 });
